@@ -1,7 +1,6 @@
 import React from 'react';
 import { TabType } from '../types';
 import { useData } from '../context/DataContext';
-import { useAuth } from '../context/AuthContext';
 
 interface FooterProps {
   activeTab: TabType;
@@ -13,7 +12,6 @@ export const Footer: React.FC<FooterProps> = ({
   setActiveTab,
 }) => {
   const { personalInfo } = useData();
-  const { isAdmin } = useAuth();
 
   const navItems: { id: TabType; label: string }[] = [
     { id: 'home', label: 'Home' },
@@ -56,22 +54,11 @@ export const Footer: React.FC<FooterProps> = ({
           ))}
         </div>
 
-        {/* Copyright & Admin Link */}
+        {/* Copyright */}
         <div className="space-y-2 flex flex-col items-center">
           <p className="font-body text-sm md:text-base text-[#486363] opacity-75">
             © {new Date().getFullYear()} {personalInfo.name}. All rights reserved.
           </p>
-
-          <div className="pt-2 flex items-center gap-3">
-            <button
-              onClick={() => handleTabClick('admin')}
-              title="Admin Portal (/fahim1211)"
-              className="inline-flex items-center gap-1.5 text-xs text-[#486363]/60 hover:text-[#004c4c] transition-colors py-1 px-2.5 rounded-md hover:bg-[#eeece5]/70 cursor-pointer"
-            >
-              <span className="material-symbols-outlined text-sm">lock</span>
-              <span>Admin Portal</span>
-            </button>
-          </div>
         </div>
       </div>
     </footer>
