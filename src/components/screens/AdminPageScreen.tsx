@@ -282,14 +282,45 @@ export const AdminPageScreen: React.FC<AdminPageScreenProps> = ({
               Administrator Portal
             </h1>
             <p className="text-xs text-[#486363]">
-              Please authenticate with your administrator credentials to access management tools.
+              Authenticate with your authorized Google account or administrator credentials to access management tools.
             </p>
           </div>
 
           {authError && (
-            <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold flex items-center gap-2">
-              <span className="material-symbols-outlined text-sm">error</span>
+            <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold flex items-center gap-2">
+              <span className="material-symbols-outlined text-sm shrink-0">error</span>
               <span>{authError}</span>
+            </div>
+          )}
+
+          {currentUser && !isAdmin && (
+            <div className="p-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-900 text-xs space-y-2.5">
+              <div className="flex items-center gap-2 font-bold text-amber-800">
+                <span className="material-symbols-outlined text-base">warning</span>
+                <span>Unauthorized Account</span>
+              </div>
+              <p className="leading-relaxed">
+                You are currently signed in as <strong>{currentUser.email}</strong>, which does not have administrator privileges for this portfolio.
+              </p>
+              <div className="pt-1 flex flex-col gap-2">
+                <button
+                  type="button"
+                  onClick={async () => {
+                    await logout();
+                    handleGoogleLogin();
+                  }}
+                  className="w-full py-2 px-3 rounded-lg bg-[#004c4c] text-white font-semibold hover:bg-[#006666] transition-colors cursor-pointer text-center"
+                >
+                  Switch / Sign In with Authorized Google Account
+                </button>
+                <button
+                  type="button"
+                  onClick={logout}
+                  className="w-full py-1.5 px-3 rounded-lg border border-amber-300 text-amber-800 font-medium hover:bg-amber-100 transition-colors cursor-pointer text-center"
+                >
+                  Sign Out
+                </button>
+              </div>
             </div>
           )}
 
@@ -297,9 +328,9 @@ export const AdminPageScreen: React.FC<AdminPageScreenProps> = ({
             <button
               onClick={handleGoogleLogin}
               disabled={loading}
-              className="w-full py-3 px-4 rounded-xl neumorphic-btn flex items-center justify-center gap-3 text-xs md:text-sm font-bold text-[#191c1e] hover:text-[#004c4c] transition-all cursor-pointer disabled:opacity-50"
+              className="w-full py-3.5 px-4 rounded-xl neumorphic-btn flex items-center justify-center gap-3 text-sm font-bold text-[#191c1e] hover:text-[#004c4c] transition-all cursor-pointer disabled:opacity-50 shadow-sm hover:shadow-md"
             >
-              <svg className="w-4 h-4" viewBox="0 0 24 24">
+              <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24">
                 <path
                   fill="#4285F4"
                   d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"
@@ -406,7 +437,7 @@ export const AdminPageScreen: React.FC<AdminPageScreenProps> = ({
                 Admin Management Center
               </h1>
               <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-teal-100 text-[#004c4c] border border-teal-300">
-                URL: /fahim1211
+                Authorized Session
               </span>
             </div>
             <p className="text-xs text-[#486363] mt-0.5">

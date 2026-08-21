@@ -1,21 +1,18 @@
 import React, { useState } from 'react';
 import { useData } from '../../context/DataContext';
-import { useAuth } from '../../context/AuthContext';
 
 interface CvModalProps {
   isOpen: boolean;
   onClose: () => void;
-  onOpenAdminCvUpload?: () => void;
 }
 
-export const CvModal: React.FC<CvModalProps> = ({ isOpen, onClose, onOpenAdminCvUpload }) => {
+export const CvModal: React.FC<CvModalProps> = ({ isOpen, onClose }) => {
   const {
     personalInfo,
     publications = [],
     awards = [],
     experience = [],
   } = useData();
-  const { isAdmin } = useAuth();
   const [isFullscreen, setIsFullscreen] = useState(false);
 
   if (!isOpen) return null;
@@ -112,20 +109,6 @@ export const CvModal: React.FC<CvModalProps> = ({ isOpen, onClose, onOpenAdminCv
               >
                 <span className="material-symbols-outlined text-base">open_in_new</span>
                 <span className="hidden md:inline">Open Tab</span>
-              </button>
-            )}
-
-            {isAdmin && onOpenAdminCvUpload && (
-              <button
-                onClick={() => {
-                  onClose();
-                  onOpenAdminCvUpload();
-                }}
-                className="px-2.5 py-1.5 rounded-lg bg-teal-100 text-[#004c4c] hover:bg-teal-200 text-xs font-semibold flex items-center gap-1 border border-teal-300 cursor-pointer"
-                title="Replace or upload new CV document"
-              >
-                <span className="material-symbols-outlined text-sm">upload_file</span>
-                <span className="hidden md:inline">Update CV</span>
               </button>
             )}
 
@@ -309,26 +292,6 @@ export const CvModal: React.FC<CvModalProps> = ({ isOpen, onClose, onOpenAdminCv
           ) : (
             /* Structured Academic CV view when no specific file uploaded */
             <div className="h-full overflow-y-auto p-6 md:p-10 space-y-8 text-[#191c1e] font-body text-sm md:text-base leading-relaxed bg-[#F7F6F2]">
-              {isAdmin && (
-                <div className="p-4 rounded-xl bg-teal-50 border border-teal-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
-                  <div className="flex items-center gap-2 text-[#004c4c]">
-                    <span className="material-symbols-outlined text-lg">info</span>
-                    <span>Admin Notice: You can upload your official PDF or Word (.docx) CV in the Admin Panel to display the exact document file here.</span>
-                  </div>
-                  {onOpenAdminCvUpload && (
-                    <button
-                      onClick={() => {
-                        onClose();
-                        onOpenAdminCvUpload();
-                      }}
-                      className="px-3 py-1.5 rounded-lg bg-[#004c4c] text-white hover:bg-[#006666] font-semibold shrink-0 cursor-pointer"
-                    >
-                      Upload PDF/Word CV
-                    </button>
-                  )}
-                </div>
-              )}
-
               {/* Header info */}
               <div className="text-center border-b border-[#e5e2db] pb-6 space-y-2">
                 <h1 className="font-display text-2xl md:text-3xl font-bold text-[#004c4c]">

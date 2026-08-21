@@ -1,7 +1,6 @@
 import React from 'react';
 import { TabType, ProfileModalTab } from '../../types';
 import { useData } from '../../context/DataContext';
-import { useAuth } from '../../context/AuthContext';
 import { ToolkitLogo } from '../ToolkitLogos';
 
 interface HomeScreenProps {
@@ -13,10 +12,8 @@ interface HomeScreenProps {
 export const HomeScreen: React.FC<HomeScreenProps> = ({
   setActiveTab,
   onOpenCvModal,
-  onOpenEditProfile,
 }) => {
   const { personalInfo } = useData();
-  const { user } = useAuth();
 
   const getInitials = (name: string) => {
     if (!name) return 'MRH';
@@ -115,18 +112,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
             </span>
             <span>Education</span>
           </h2>
-
-          {/* Quick Edit button for logged in user or admin */}
-          {user && (
-            <button
-              onClick={() => onOpenEditProfile?.('education')}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl neumorphic-btn text-xs font-semibold text-[#004c4c] hover:text-teal-900 cursor-pointer shadow-sm"
-              title="Edit Education section and subsections"
-            >
-              <span className="material-symbols-outlined text-sm">edit</span>
-              <span className="hidden sm:inline">Edit Education</span>
-            </button>
-          )}
         </div>
 
         {/* Primary Degree Card */}

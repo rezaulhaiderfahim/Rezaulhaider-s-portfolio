@@ -108,78 +108,107 @@ export const resolveCurrentLocationToTab = (): TabType => {
   const search = window.location.search || '';
   const hash = window.location.hash || '';
 
-  // 1. Check Query Parameters (?tab=fahim1211, ?page=admin, ?fahim1211, ?admin, etc.)
+  // 1. Check Query Parameters (?tab=fahim1211, ?fahim1211, ?tab=research, etc.)
   if (search) {
     try {
       const searchParams = new URLSearchParams(search);
-      const directKeys = ['fahim1211', 'admin', 'research', 'awards', 'notes', 'contact'];
-      for (const key of directKeys) {
+
+      // Secret route check via query flag
+      if (searchParams.has('fahim1211')) {
+        return 'admin';
+      }
+
+      // Check standard public query flags
+      const publicKeys: ('research' | 'awards' | 'notes' | 'contact')[] = [
+        'research',
+        'awards',
+        'notes',
+        'contact',
+      ];
+      for (const key of publicKeys) {
         if (searchParams.has(key)) {
-          return key === 'fahim1211' || key === 'admin' ? 'admin' : (key as TabType);
+          return key;
         }
       }
 
       const paramValue =
         searchParams.get('tab') ||
         searchParams.get('page') ||
-        searchParams.get('p') ||
         searchParams.get('section') ||
         searchParams.get('view') ||
-        searchParams.get('path') ||
-        searchParams.get('route') ||
-        searchParams.get('screen');
+        searchParams.get('route');
 
       if (paramValue) {
         const val = paramValue.toLowerCase().trim().replace(/^\/+|\/+$/g, '');
-        if (val === 'fahim1211' || val === 'admin' || val === 'login' || val === 'portal' || val === 'dashboard' || val === 'cms') {
+        // Secret parameter strictly matches fahim1211
+        if (val === 'fahim1211') {
           return 'admin';
         }
-        if (val === 'research' || val === 'publications' || val === 'papers') return 'research';
-        if (val === 'awards' || val === 'honors' || val === 'fellowships') return 'awards';
-        if (val === 'contact' || val === 'inquiry' || val === 'message') return 'contact';
-        if (val === 'notes' || val === 'blog' || val === 'articles') return 'notes';
+        if (val === 'research') return 'research';
+        if (val === 'awards') return 'awards';
+        if (val === 'contact') return 'contact';
+        if (val === 'notes') return 'notes';
         if (val === 'home' || val === '') return 'home';
+
+        // Any unauthorized param value like ?tab=admin or ?tab=login redirects to home
+        if (typeof window !== 'undefined' && window.history?.replaceState) {
+          window.history.replaceState(null, '', '/');
+        }
+        return 'home';
       }
     } catch {
-      // Ignore query param parsing errors
+      // Fall through on query parse error
     }
   }
 
-  // 2. Check Hash Fragment (#/fahim1211, #fahim1211, #/admin, #admin, etc.)
+  // 2. Check Hash Fragment (#/fahim1211, #fahim1211, #/research, etc.)
   if (hash) {
     const cleanHash = hash.replace(/^[#/]+/, '').split('?')[0].toLowerCase().trim();
-    if (cleanHash === 'fahim1211' || cleanHash === 'admin' || cleanHash === 'login' || cleanHash === 'portal' || cleanHash === 'dashboard') {
+    if (cleanHash === 'fahim1211') {
       return 'admin';
     }
-    if (cleanHash === 'research' || cleanHash === 'publications' || cleanHash === 'papers') return 'research';
-    if (cleanHash === 'awards' || cleanHash === 'honors' || cleanHash === 'fellowships') return 'awards';
-    if (cleanHash === 'contact' || cleanHash === 'inquiry' || cleanHash === 'message') return 'contact';
-    if (cleanHash === 'notes' || cleanHash === 'blog' || cleanHash === 'articles') return 'notes';
-    if (cleanHash === 'home') return 'home';
+    if (cleanHash === 'research') return 'research';
+    if (cleanHash === 'awards') return 'awards';
+    if (cleanHash === 'contact') return 'contact';
+    if (cleanHash === 'notes') return 'notes';
+    if (cleanHash === 'home' || cleanHash === '') return 'home';
+
+    // Unknown or unauthorized hash (#admin, #login, etc.) clean to /
+    if (typeof window !== 'undefined' && window.history?.replaceState) {
+      window.history.replaceState(null, '', '/');
+    }
+    return 'home';
   }
 
-  // 3. Check Pathname (/fahim1211, /admin, /research, /awards, etc.)
+  // 3. Check Pathname (/fahim1211, /research, /awards, etc.)
   if (pathname && pathname !== '/') {
     const rawClean = pathname.split('?')[0].split('#')[0].toLowerCase().trim();
     const segments = rawClean.split('/').filter(Boolean);
 
-    // Exact single segment matches
-    for (const seg of segments) {
-      if (seg === 'fahim1211' || seg === 'admin' || seg === 'login' || seg === 'portal' || seg === 'dashboard' || seg === 'cms') {
-        return 'admin';
-      }
-      if (seg === 'research' || seg === 'publications' || seg === 'papers') return 'research';
-      if (seg === 'awards' || seg === 'honors' || seg === 'fellowships') return 'awards';
-      if (seg === 'contact' || seg === 'inquiry' || seg === 'message') return 'contact';
-      if (seg === 'notes' || seg === 'blog' || seg === 'articles') return 'notes';
+    // Exact secret route match
+    if (segments.length === 1 && segments[0] === 'fahim1211') {
+      return 'admin';
     }
 
-    // Substring fallback check (e.g. if embedded in preview proxy URL)
-    if (rawClean.includes('fahim1211') || rawClean.endsWith('/admin')) return 'admin';
-    if (rawClean.includes('research')) return 'research';
-    if (rawClean.includes('awards')) return 'awards';
-    if (rawClean.includes('contact')) return 'contact';
-    if (rawClean.includes('notes')) return 'notes';
+    // Exact public routes
+    if (segments.length === 1) {
+      const seg = segments[0];
+      if (seg === 'research') return 'research';
+      if (seg === 'awards') return 'awards';
+      if (seg === 'contact') return 'contact';
+      if (seg === 'notes') return 'notes';
+    }
+
+    // Substring match for secret route in case of proxy/subfolder deployment
+    if (rawClean.endsWith('/fahim1211') || rawClean === '/fahim1211') {
+      return 'admin';
+    }
+
+    // Any unauthorized or fake route like /admin, /login, /dashboard, /cms, /portal -> redirect to / (home)
+    if (typeof window !== 'undefined' && window.history?.replaceState) {
+      window.history.replaceState(null, '', '/');
+    }
+    return 'home';
   }
 
   return 'home';
@@ -380,7 +409,6 @@ function PortfolioApp() {
       <CvModal
         isOpen={isCvModalOpen}
         onClose={() => setIsCvModalOpen(false)}
-        onOpenAdminCvUpload={() => setProfileModalState({ isOpen: true, tab: 'cv' })}
       />
 
       <ComposeModal
