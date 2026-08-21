@@ -34,7 +34,7 @@ export const AdminPageScreen: React.FC<AdminPageScreenProps> = ({
   onEditNote,
   onNavigateHome,
 }) => {
-  const { currentUser, isAdmin, loginWithGoogle, loginWithEmail, logout, authError, clearAuthError } = useAuth();
+  const { currentUser, isAdmin, loginWithGoogle, loginWithEmail, registerWithEmail, logout, authError, clearAuthError } = useAuth();
   const {
     personalInfo,
     publications = [],
@@ -235,6 +235,7 @@ export const AdminPageScreen: React.FC<AdminPageScreenProps> = ({
   // Login form states if not logged in
   const [email, setEmail] = useState('Fahimhaider0124@gmail.com');
   const [password, setPassword] = useState('');
+  const [isRegisterMode, setIsRegisterMode] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const unreadMessages = (messages || []).filter((m) => !m.read);
@@ -244,9 +245,13 @@ export const AdminPageScreen: React.FC<AdminPageScreenProps> = ({
     setLoading(true);
     clearAuthError();
     try {
-      await loginWithEmail(email, password);
+      if (isRegisterMode) {
+        await registerWithEmail(email, password, 'M. R. Haider');
+      } else {
+        await loginWithEmail(email, password);
+      }
     } catch (err) {
-      console.error('Login error:', err);
+      console.error(err);
     } finally {
       setLoading(false);
     }
@@ -283,7 +288,7 @@ export const AdminPageScreen: React.FC<AdminPageScreenProps> = ({
 
           {authError && (
             <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-semibold flex items-center gap-2">
-              <span className="material-symbols-outlined text-sm shrink-0">error</span>
+              <span className="material-symbols-outlined text-sm">error</span>
               <span>{authError}</span>
             </div>
           )}
@@ -340,9 +345,10 @@ export const AdminPageScreen: React.FC<AdminPageScreenProps> = ({
                 <input
                   type="password"
                   required
+                  minLength={6}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  placeholder="Enter your password"
+                  placeholder="At least 6 characters"
                   className="w-full px-3.5 py-2 rounded-xl text-xs md:text-sm neumorphic-input text-[#191c1e]"
                 />
               </div>
@@ -350,14 +356,28 @@ export const AdminPageScreen: React.FC<AdminPageScreenProps> = ({
               <button
                 type="submit"
                 disabled={loading}
-                className="w-full py-2.5 rounded-xl bg-[#004c4c] text-white hover:bg-[#006666] font-semibold text-xs transition-colors cursor-pointer shadow disabled:opacity-50 mt-2 flex items-center justify-center gap-2"
+                className="w-full py-2.5 rounded-xl bg-[#004c4c] text-white hover:bg-[#006666] font-semibold text-xs transition-colors cursor-pointer shadow disabled:opacity-50 mt-2"
               >
-                {loading && <span className="material-symbols-outlined text-sm animate-spin">sync</span>}
-                <span>{loading ? 'Authenticating...' : 'Sign In as Admin'}</span>
+                {loading
+                  ? 'Authenticating...'
+                  : isRegisterMode
+                  ? 'Create Admin Account & Log In'
+                  : 'Sign In as Admin'}
               </button>
             </form>
 
-            <div className="flex justify-center items-center pt-2 text-xs">
+            <div className="flex justify-between items-center pt-2 text-xs">
+              <button
+                type="button"
+                onClick={() => {
+                  setIsRegisterMode(!isRegisterMode);
+                  clearAuthError();
+                }}
+                className="text-[#004c4c] hover:underline font-medium cursor-pointer"
+              >
+                {isRegisterMode ? '← Already have an account? Sign In' : 'First time? Setup Admin Password'}
+              </button>
+
               <button
                 type="button"
                 onClick={onNavigateHome}

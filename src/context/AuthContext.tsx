@@ -106,13 +106,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (err: any) {
       console.error('Email Login Error:', err);
       let msg = 'Authentication failed.';
-      if (
-        err.code === 'auth/invalid-credential' ||
-        err.code === 'auth/user-not-found' ||
-        err.code === 'auth/wrong-password' ||
-        err.code === 'auth/invalid-email'
-      ) {
-        msg = 'Invalid email or password.';
+      if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
+        msg = 'Invalid email or password. If this is your first time, you can click "Create Admin Account" below.';
       } else if (err.code === 'auth/too-many-requests') {
         msg = 'Too many attempts. Please wait a moment or sign in with Google.';
       } else {
