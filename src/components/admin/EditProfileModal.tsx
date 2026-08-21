@@ -4,7 +4,7 @@ import { PersonalInfo, QuantitativeTool, SkillItem, SocialLink } from '../../typ
 import { ToolkitLogo } from '../ToolkitLogos';
 import { ImageCropModal } from './ImageCropModal';
 
-export type ProfileModalTab = 'photo' | 'bio' | 'education' | 'interests' | 'toolkit' | 'skills' | 'social';
+export type ProfileModalTab = 'photo' | 'cv' | 'bio' | 'education' | 'interests' | 'toolkit' | 'skills' | 'social';
 
 interface EditProfileModalProps {
   isOpen: boolean;
@@ -61,6 +61,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
   const [cropSourceImage, setCropSourceImage] = useState<string>('');
 
   const fileInputRef = React.useRef<HTMLInputElement | null>(null);
+  const cvFileInputRef = React.useRef<HTMLInputElement | null>(null);
 
   // Sync state whenever modal opens or personalInfo updates
   useEffect(() => {
@@ -72,6 +73,62 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
   }, [isOpen, personalInfo, initialTab]);
 
   if (!isOpen) return null;
+
+  // --- CV Document File Upload Handler (Word or PDF) ---
+  const handleCvFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    const fileNameLower = file.name.toLowerCase();
+    const isPdf = file.type === 'application/pdf' || fileNameLower.endsWith('.pdf');
+    const isWord =
+      file.type.includes('word') ||
+      file.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' ||
+      file.type === 'application/msword' ||
+      fileNameLower.endsWith('.docx') ||
+      fileNameLower.endsWith('.doc');
+
+    if (!isPdf && !isWord) {
+      setErrorMsg('Please select a valid document: PDF (.pdf) or Word (.docx / .doc).');
+      return;
+    }
+
+    const sizeKb = file.size / 1024;
+    const formattedSize = sizeKb > 1024 ? `${(sizeKb / 1024).toFixed(2)} MB` : `${Math.round(sizeKb)} KB`;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      const dataUrl = event.target?.result as string;
+      if (dataUrl) {
+        setFormData((prev) => ({
+          ...prev,
+          cvDocument: {
+            fileData: dataUrl,
+            fileName: file.name,
+            fileType: isPdf ? 'pdf' : 'docx',
+            fileSize: formattedSize,
+            uploadedAt: new Date().toLocaleDateString('en-US', {
+              month: 'short',
+              day: 'numeric',
+              year: 'numeric',
+            }),
+          },
+        }));
+        setErrorMsg(null);
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const handleRemoveCvDocument = () => {
+    setFormData((prev) => ({
+      ...prev,
+      cvDocument: undefined,
+    }));
+    if (cvFileInputRef.current) {
+      cvFileInputRef.current.value = '';
+    }
+  };
 
   // --- Profile Photo Upload & Resize Handler ---
   const handleImageFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -310,6 +367,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
         <div className="flex overflow-x-auto border-b border-[#d8dadd] px-6 bg-[#f7f9fc] shrink-0 gap-1 sm:gap-2">
           {[
             { id: 'photo', label: 'Profile Picture', icon: 'account_circle' },
+            { id: 'cv', label: 'Curriculum Vitae (CV)', icon: 'description' },
             { id: 'bio', label: 'Bio & Info', icon: 'person' },
             { id: 'education', label: 'Education', icon: 'school' },
             {
@@ -554,6 +612,158 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                         <p className="text-[10px] text-gray-500">Clean typography badge</p>
                       </div>
                     </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* TAB: CV DOCUMENT UPLOAD & MANAGEMENT */}
+            {activeTab === 'cv' && (
+              <div className="space-y-6">
+                <div className="p-6 rounded-2xl bg-white/80 border border-gray-200/90 shadow-sm space-y-6">
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <div className="w-8 h-8 rounded-lg bg-teal-50 border border-teal-200 flex items-center justify-center text-[#004c4c]">
+                        <span className="material-symbols-outlined text-lg">upload_file</span>
+                      </div>
+                      <h4 className="font-headline text-base font-bold text-[#004c4c]">
+                        Curriculum Vitae (CV) Document
+                      </h4>
+                    </div>
+                    <p className="text-xs text-[#486363] mt-1 leading-relaxed">
+                      Upload your official CV in either <strong>PDF (.pdf)</strong> or <strong>Word (.docx / .doc)</strong> format. When visitors click the <strong>"Show CV"</strong> button on your portfolio, they will view and download your uploaded document.
+                    </p>
+                  </div>
+
+                  {/* Current Document Status */}
+                  {formData.cvDocument?.fileData || formData.cvDocument?.fileUrl ? (
+                    <div className="p-4 rounded-xl bg-teal-50/80 border border-teal-200 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                      <div className="flex items-center space-x-3">
+                        <div className="w-12 h-12 rounded-xl bg-[#004c4c] text-white flex items-center justify-center font-bold text-xl shadow">
+                          <span className="material-symbols-outlined text-2xl">
+                            {formData.cvDocument.fileType === 'pdf' || formData.cvDocument.fileName?.toLowerCase().endsWith('.pdf')
+                              ? 'picture_as_pdf'
+                              : 'description'}
+                          </span>
+                        </div>
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <p className="font-bold text-sm text-[#004c4c]">
+                              {formData.cvDocument.fileName || 'Uploaded CV Document'}
+                            </p>
+                            <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded bg-[#004c4c] text-white">
+                              {formData.cvDocument.fileType?.toUpperCase() || 'DOCUMENT'}
+                            </span>
+                          </div>
+                          <p className="text-xs text-[#486363] mt-0.5">
+                            {formData.cvDocument.fileSize ? `${formData.cvDocument.fileSize} · ` : ''}
+                            {formData.cvDocument.uploadedAt ? `Uploaded ${formData.cvDocument.uploadedAt}` : 'Active on portfolio'}
+                          </p>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 w-full sm:w-auto">
+                        <a
+                          href={formData.cvDocument.fileData || formData.cvDocument.fileUrl}
+                          download={formData.cvDocument.fileName || 'CV.pdf'}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="flex-1 sm:flex-none px-3.5 py-2 rounded-xl bg-white hover:bg-teal-50 text-[#004c4c] border border-teal-300 font-semibold text-xs flex items-center justify-center gap-1 cursor-pointer"
+                        >
+                          <span className="material-symbols-outlined text-sm">visibility</span>
+                          <span>Preview</span>
+                        </a>
+
+                        <button
+                          type="button"
+                          onClick={handleRemoveCvDocument}
+                          className="flex-1 sm:flex-none px-3.5 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 font-semibold text-xs flex items-center justify-center gap-1 cursor-pointer"
+                        >
+                          <span className="material-symbols-outlined text-sm">delete</span>
+                          <span>Remove</span>
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="p-5 rounded-xl bg-gray-50 border border-dashed border-gray-300 text-center space-y-2">
+                      <div className="w-10 h-10 mx-auto rounded-full bg-gray-200/70 flex items-center justify-center text-gray-500">
+                        <span className="material-symbols-outlined text-xl">description</span>
+                      </div>
+                      <p className="text-xs font-semibold text-[#191c1e]">
+                        No custom document uploaded yet
+                      </p>
+                      <p className="text-[11px] text-[#486363]">
+                        The portfolio currently generates a formatted academic CV preview from your profile data.
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Upload Controls */}
+                  <div className="space-y-4 pt-2">
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center gap-3">
+                      <input
+                        type="file"
+                        ref={cvFileInputRef}
+                        accept=".pdf,.doc,.docx,application/pdf,application/msword,application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+                        onChange={handleCvFileUpload}
+                        className="hidden"
+                        id="cv-file-upload-input"
+                      />
+
+                      <label
+                        htmlFor="cv-file-upload-input"
+                        className="px-4 py-2.5 rounded-xl bg-[#004c4c] text-white hover:bg-[#006666] font-semibold text-xs flex items-center gap-2 cursor-pointer shadow-sm transition-all"
+                      >
+                        <span className="material-symbols-outlined text-base">upload_file</span>
+                        <span>{formData.cvDocument ? 'Upload New / Replace Document' : 'Upload CV (Word or PDF)'}</span>
+                      </label>
+
+                      <span className="text-[11px] text-[#486363]">
+                        Accepted: <strong>.pdf</strong>, <strong>.docx</strong>, <strong>.doc</strong> (Max ~10MB)
+                      </span>
+                    </div>
+
+                    {/* Direct External URL alternative */}
+                    <div className="space-y-1.5 pt-2 border-t border-gray-100">
+                      <label className="block text-xs font-semibold text-[#004c4c]">
+                        Or Set Direct External Document Link (Google Drive, Dropbox, Institutional Link)
+                      </label>
+                      <div className="flex gap-2">
+                        <input
+                          type="url"
+                          value={formData.cvDocument?.fileUrl || ''}
+                          onChange={(e) => {
+                            const val = e.target.value;
+                            setFormData({
+                              ...formData,
+                              cvDocument: val
+                                ? {
+                                    fileUrl: val,
+                                    fileName: val.split('/').pop()?.split('?')[0] || 'Curriculum_Vitae.pdf',
+                                    fileType: val.toLowerCase().endsWith('.docx') ? 'docx' : 'pdf',
+                                    uploadedAt: new Date().toLocaleDateString('en-US', {
+                                      month: 'short',
+                                      day: 'numeric',
+                                      year: 'numeric',
+                                    }),
+                                  }
+                                : undefined,
+                            });
+                          }}
+                          placeholder="https://drive.google.com/... or https://institution.edu/cv.pdf"
+                          className="flex-grow px-3.5 py-2 rounded-xl text-xs md:text-sm neumorphic-input text-[#191c1e] font-mono"
+                        />
+                        {formData.cvDocument?.fileUrl && (
+                          <button
+                            type="button"
+                            onClick={handleRemoveCvDocument}
+                            className="px-3 py-2 text-xs text-gray-500 hover:text-gray-800 rounded-xl hover:bg-gray-200 cursor-pointer"
+                          >
+                            Clear
+                          </button>
+                        )}
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

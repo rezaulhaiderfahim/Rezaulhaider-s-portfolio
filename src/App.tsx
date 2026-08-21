@@ -323,6 +323,7 @@ function PortfolioApp() {
       <CvModal
         isOpen={isCvModalOpen}
         onClose={() => setIsCvModalOpen(false)}
+        onOpenAdminCvUpload={() => setProfileModalState({ isOpen: true, tab: 'cv' })}
       />
 
       <ComposeModal

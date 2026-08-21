@@ -81,22 +81,11 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
           {/* Action Buttons */}
           <div className="flex flex-wrap items-center justify-center lg:justify-start gap-4 pt-2">
             <button
-              onClick={() => {
-                setActiveTab('research');
-                window.scrollTo({ top: 0, behavior: 'smooth' });
-              }}
-              className="neumorphic-btn px-6 py-3 rounded-full text-xs font-semibold text-[#004c4c] tracking-wider uppercase flex items-center gap-2 cursor-pointer hover:text-[#006666]"
-            >
-              <span className="material-symbols-outlined text-base">menu_book</span>
-              View Research
-            </button>
-
-            <button
               onClick={onOpenCvModal}
               className="neumorphic-btn px-6 py-3 rounded-full text-xs font-semibold text-[#004c4c] tracking-wider uppercase flex items-center gap-2 cursor-pointer hover:text-[#006666]"
             >
-              <span className="material-symbols-outlined text-base">download</span>
-              Download CV
+              <span className="material-symbols-outlined text-base">description</span>
+              Show CV
             </button>
 
             <button

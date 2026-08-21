@@ -42,10 +42,10 @@ export const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getA
 
 export const auth = getAuth(app);
 
-// Suppress transient offline/connection warnings in cloud preview iframe
-setLogLevel('error');
+// Suppress transient offline/connection warnings and retry logs
+setLogLevel('silent');
 
-// Initialize Firestore with force long polling to ensure immediate reliable HTTP communication in preview iframes
+// Initialize Firestore with robust connection settings for iframe and cloud environments
 const databaseId = firebaseConfigJson.firestoreDatabaseId && firebaseConfigJson.firestoreDatabaseId !== '(default)'
   ? firebaseConfigJson.firestoreDatabaseId
   : undefined;
@@ -53,7 +53,7 @@ const databaseId = firebaseConfigJson.firestoreDatabaseId && firebaseConfigJson.
 let firestoreInstance;
 try {
   firestoreInstance = initializeFirestore(app, {
-    experimentalForceLongPolling: true,
+    experimentalAutoDetectLongPolling: true,
   }, databaseId);
 } catch {
   firestoreInstance = databaseId ? getFirestore(app, databaseId) : getFirestore(app);

@@ -45,6 +45,15 @@ export interface EducationInfo {
   focus: string;
 }
 
+export interface CvDocument {
+  fileData?: string; // Base64 data URL or remote file URL
+  fileName?: string;
+  fileType?: 'pdf' | 'docx' | 'doc' | string;
+  fileSize?: string;
+  uploadedAt?: string;
+  fileUrl?: string;
+}
+
 export interface PersonalInfo {
   name: string;
   shortName: string;
@@ -60,6 +69,7 @@ export interface PersonalInfo {
   quantitativeToolkit: QuantitativeTool[];
   skills: SkillItem[];
   socialLinks: SocialLink[];
+  cvDocument?: CvDocument;
 }
 
 export interface Publication {

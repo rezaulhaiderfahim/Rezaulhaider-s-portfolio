@@ -717,8 +717,15 @@ export const AdminPageScreen: React.FC<AdminPageScreenProps> = ({
             </div>
             <div className="flex flex-wrap gap-2">
               <button
-                onClick={() => onOpenProfileModal('photo')}
+                onClick={() => onOpenProfileModal('cv')}
                 className="px-3 py-1.5 rounded-xl bg-[#004c4c] text-white hover:bg-[#006666] font-semibold text-xs flex items-center gap-1.5 shadow cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-sm">description</span>
+                <span>Manage / Upload CV</span>
+              </button>
+              <button
+                onClick={() => onOpenProfileModal('photo')}
+                className="px-3 py-1.5 rounded-xl bg-teal-800 text-white hover:bg-teal-700 font-semibold text-xs flex items-center gap-1.5 shadow cursor-pointer"
               >
                 <span className="material-symbols-outlined text-sm">account_circle</span>
                 <span>Change Photo</span>
@@ -808,6 +815,46 @@ export const AdminPageScreen: React.FC<AdminPageScreenProps> = ({
             <p className="text-xs md:text-sm text-[#3f4948] leading-relaxed p-4 neumorphic-inset-box rounded-xl">
               {personalInfo.bio}
             </p>
+          </div>
+
+          {/* Curriculum Vitae (CV) Document Card */}
+          <div className="neumorphic-card p-6 space-y-4 border border-teal-200/60 bg-white/60">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center text-[#004c4c]">
+                  <span className="material-symbols-outlined text-2xl">
+                    {personalInfo.cvDocument?.fileType === 'pdf' || personalInfo.cvDocument?.fileName?.toLowerCase().endsWith('.pdf')
+                      ? 'picture_as_pdf'
+                      : 'description'}
+                  </span>
+                </div>
+                <div>
+                  <div className="flex items-center gap-2">
+                    <h4 className="font-headline text-base font-bold text-[#004c4c]">
+                      {personalInfo.cvDocument?.fileName || 'Official Curriculum Vitae'}
+                    </h4>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-[#004c4c] text-white">
+                      {personalInfo.cvDocument ? personalInfo.cvDocument.fileType?.toUpperCase() || 'CUSTOM FILE' : 'AUTO-GENERATED'}
+                    </span>
+                  </div>
+                  <p className="text-xs text-[#486363] mt-0.5">
+                    {personalInfo.cvDocument?.fileData || personalInfo.cvDocument?.fileUrl
+                      ? `${personalInfo.cvDocument.fileSize || ''} · Uploaded ${personalInfo.cvDocument.uploadedAt || ''} · Displayed on "Show CV" click`
+                      : 'No custom document uploaded. Portfolio currently generates standard CV from profile.'}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => onOpenProfileModal('cv')}
+                  className="px-3.5 py-2 rounded-xl bg-[#004c4c] text-white hover:bg-[#006666] text-xs font-semibold flex items-center gap-1.5 shadow cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-sm">upload_file</span>
+                  <span>{personalInfo.cvDocument ? 'Replace / Edit CV' : 'Upload Word/PDF CV'}</span>
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Research Interests List */}
