@@ -54,34 +54,13 @@ export const Footer: React.FC<FooterProps> = ({
               {item.label}
             </button>
           ))}
-          {isAdmin && (
-            <button
-              onClick={() => handleTabClick('admin')}
-              className={`transition-colors cursor-pointer flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold ${
-                activeTab === 'admin'
-                  ? 'bg-[#004c4c] text-white'
-                  : 'bg-teal-50 text-[#004c4c] border border-teal-200 hover:bg-teal-100'
-              }`}
-            >
-              <span className="material-symbols-outlined text-sm">admin_panel_settings</span>
-              <span>Admin Panel</span>
-            </button>
-          )}
         </div>
 
-        {/* Copyright & Discreet Admin Access */}
+        {/* Copyright */}
         <div className="space-y-2 flex flex-col items-center">
           <p className="font-body text-sm md:text-base text-[#486363] opacity-75">
             © {new Date().getFullYear()} {personalInfo.name}. All rights reserved.
           </p>
-          <button
-            onClick={() => handleTabClick('admin')}
-            title="Administrator access"
-            className="text-[11px] text-[#486363]/40 hover:text-[#004c4c] transition-colors flex items-center gap-1 cursor-pointer pt-1"
-          >
-            <span className="material-symbols-outlined text-[13px]">lock</span>
-            <span>Admin</span>
-          </button>
         </div>
       </div>
     </footer>
