@@ -1,0 +1,74 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isSuperAdmin() {
+      return isAuthenticated() && (
+        (request.auth.token.email != null && request.auth.token.email.lower() == 'fahimhaider0124@gmail.com') ||
+        (request.auth.token.email != null && request.auth.token.email.lower() == 'rezaulhaiderfahim@gmail.com')
+      );
+    }
+
+    function isAdmin() {
+      return isSuperAdmin() || (
+        isAuthenticated() &&
+        exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin'
+      );
+    }
+
+    // User accounts
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && request.auth.uid == userId;
+      allow update: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
+      allow delete: if isAdmin();
+    }
+
+    // Portfolio configurations
+    match /portfolio_data/{docId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Publications
+    match /publications/{pubId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Research Timeline
+    match /research_timeline/{itemId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Awards
+    match /awards/{awardId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Experience
+    match /experience/{expId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Personal Notes & Thoughts Archive
+    match /notes/{noteId} {
+      allow read: if true;
+      allow write: if isAdmin();
+    }
+
+    // Visitor Inquiries & Messages
+    match /messages/{messageId} {
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
+    }
+  }
+}
