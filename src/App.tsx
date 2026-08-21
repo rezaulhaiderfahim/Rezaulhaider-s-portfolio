@@ -102,8 +102,8 @@ const tabToPath = (tab: TabType): string => {
 };
 
 const pathToTab = (pathname: string): TabType => {
-  const clean = pathname.replace(/^\/+|\/+$/g, '').toLowerCase();
-  if (!clean || clean === 'home') return 'home';
+  if (!pathname) return 'home';
+  const clean = pathname.split('?')[0].split('#')[0].replace(/^\/+|\/+$/g, '').toLowerCase();
   if (clean === 'fahim1211' || clean === 'admin') return 'admin';
   if (clean === 'research') return 'research';
   if (clean === 'awards') return 'awards';
@@ -119,9 +119,9 @@ function PortfolioApp() {
       const pathTab = pathToTab(window.location.pathname);
       if (pathTab !== 'home') return pathTab;
 
-      const hash = window.location.hash.replace(/^#/, '').toLowerCase();
-      if (hash) {
-        return pathToTab(hash);
+      const rawHash = window.location.hash.replace(/^[#/]+/, '').toLowerCase();
+      if (rawHash) {
+        return pathToTab(rawHash);
       }
     }
     return 'home';
@@ -164,15 +164,24 @@ function PortfolioApp() {
     setProfileModalState({ isOpen: true, tab });
   };
 
-  // Sync with browser history and popstate events (Real Path Navigation)
+  // Sync with browser history, popstate and hashchange events
   useEffect(() => {
-    const handlePopState = () => {
-      const tab = pathToTab(window.location.pathname);
+    const handleUrlChange = () => {
+      let tab = pathToTab(window.location.pathname);
+      if (tab === 'home') {
+        const hashClean = window.location.hash.replace(/^[#/]+/, '').toLowerCase();
+        if (hashClean) {
+          const hashTab = pathToTab(hashClean);
+          if (hashTab !== 'home') {
+            tab = hashTab;
+          }
+        }
+      }
       setActiveTab(tab);
     };
 
-    // If loaded with a legacy hash fragment (#research), convert to real path (/research)
-    const hash = window.location.hash.replace(/^#/, '').toLowerCase();
+    // If loaded with a legacy hash fragment (#fahim1211, #research), normalize to real path
+    const hash = window.location.hash.replace(/^[#/]+/, '').toLowerCase();
     if (hash && ['home', 'research', 'awards', 'contact', 'notes', 'fahim1211', 'admin'].includes(hash)) {
       const targetTab = pathToTab(hash);
       const targetPath = tabToPath(targetTab);
@@ -180,9 +189,11 @@ function PortfolioApp() {
       setActiveTab(targetTab);
     }
 
-    window.addEventListener('popstate', handlePopState);
+    window.addEventListener('popstate', handleUrlChange);
+    window.addEventListener('hashchange', handleUrlChange);
     return () => {
-      window.removeEventListener('popstate', handlePopState);
+      window.removeEventListener('popstate', handleUrlChange);
+      window.removeEventListener('hashchange', handleUrlChange);
     };
   }, []);
 

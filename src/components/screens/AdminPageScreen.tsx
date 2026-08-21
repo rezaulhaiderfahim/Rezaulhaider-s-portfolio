@@ -34,7 +34,7 @@ export const AdminPageScreen: React.FC<AdminPageScreenProps> = ({
   onEditNote,
   onNavigateHome,
 }) => {
-  const { currentUser, isAdmin, loginWithGoogle, loginWithEmail, logout, authError, clearAuthError } = useAuth();
+  const { currentUser, isAdmin, loginWithGoogle, loginWithEmail, registerWithEmail, logout, authError, clearAuthError } = useAuth();
   const {
     personalInfo,
     publications = [],
@@ -61,16 +61,21 @@ export const AdminPageScreen: React.FC<AdminPageScreenProps> = ({
   // Login form states if not logged in
   const [email, setEmail] = useState('Fahimhaider0124@gmail.com');
   const [password, setPassword] = useState('');
+  const [isRegisterMode, setIsRegisterMode] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const unreadMessages = (messages || []).filter((m) => !m.read);
 
-  const handleEmailLogin = async (e: React.FormEvent) => {
+  const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     clearAuthError();
     try {
-      await loginWithEmail(email, password);
+      if (isRegisterMode) {
+        await registerWithEmail(email, password, 'M. R. Haider');
+      } else {
+        await loginWithEmail(email, password);
+      }
     } catch (err) {
       console.error(err);
     } finally {
@@ -149,7 +154,7 @@ export const AdminPageScreen: React.FC<AdminPageScreenProps> = ({
               <div className="flex-grow border-t border-[#d8dadd]"></div>
             </div>
 
-            <form onSubmit={handleEmailLogin} className="space-y-3">
+            <form onSubmit={handleEmailSubmit} className="space-y-3">
               <div>
                 <label className="block text-xs font-semibold text-[#004c4c] mb-1">Email</label>
                 <input
@@ -166,8 +171,10 @@ export const AdminPageScreen: React.FC<AdminPageScreenProps> = ({
                 <input
                   type="password"
                   required
+                  minLength={6}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  placeholder="At least 6 characters"
                   className="w-full px-3.5 py-2 rounded-xl text-xs md:text-sm neumorphic-input text-[#191c1e]"
                 />
               </div>
@@ -177,16 +184,32 @@ export const AdminPageScreen: React.FC<AdminPageScreenProps> = ({
                 disabled={loading}
                 className="w-full py-2.5 rounded-xl bg-[#004c4c] text-white hover:bg-[#006666] font-semibold text-xs transition-colors cursor-pointer shadow disabled:opacity-50 mt-2"
               >
-                {loading ? 'Authenticating...' : 'Sign In as Admin'}
+                {loading
+                  ? 'Authenticating...'
+                  : isRegisterMode
+                  ? 'Create Admin Account & Log In'
+                  : 'Sign In as Admin'}
               </button>
             </form>
 
-            <div className="pt-2 text-center">
+            <div className="flex justify-between items-center pt-2 text-xs">
               <button
-                onClick={onNavigateHome}
-                className="text-xs text-[#486363] hover:text-[#004c4c] hover:underline cursor-pointer"
+                type="button"
+                onClick={() => {
+                  setIsRegisterMode(!isRegisterMode);
+                  clearAuthError();
+                }}
+                className="text-[#004c4c] hover:underline font-medium cursor-pointer"
               >
-                ← Return to Public Portfolio
+                {isRegisterMode ? '← Already have an account? Sign In' : 'First time? Setup Admin Password'}
+              </button>
+
+              <button
+                type="button"
+                onClick={onNavigateHome}
+                className="text-[#486363] hover:text-[#004c4c] hover:underline cursor-pointer"
+              >
+                Return to Portfolio
               </button>
             </div>
           </div>
