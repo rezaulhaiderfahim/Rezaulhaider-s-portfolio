@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../context/AuthContext';
 import { useData } from '../../context/DataContext';
 import { Publication, ResearchExperience, AwardItem, ExperienceItem, ContactMessage, NotePost } from '../../types';
@@ -43,6 +43,7 @@ export const AdminPageScreen: React.FC<AdminPageScreenProps> = ({
     experience = [],
     notes = [],
     messages = [],
+    updatePersonalInfo,
     deletePublication,
     deleteResearchTimeline,
     deleteAward,
@@ -53,10 +54,183 @@ export const AdminPageScreen: React.FC<AdminPageScreenProps> = ({
   } = useData();
 
   const [activeTab, setActiveTab] = useState<
-    'inbox' | 'publications' | 'notes' | 'timeline' | 'experience' | 'awards' | 'profile'
+    'inbox' | 'education' | 'publications' | 'notes' | 'timeline' | 'experience' | 'awards' | 'profiles' | 'profile'
   >('inbox');
 
   const [selectedMessage, setSelectedMessage] = useState<ContactMessage | null>(null);
+
+  // Education state for direct in-page editing
+  const [educationForm, setEducationForm] = useState(
+    personalInfo.education || {
+      degree: '',
+      institution: '',
+      location: '',
+      period: '',
+      gpa: '',
+      focus: '',
+      thesis: '',
+      honors: '',
+      coursework: '',
+      description: '',
+      entries: [],
+    }
+  );
+  const [savingEducation, setSavingEducation] = useState(false);
+  const [educationSuccessMsg, setEducationSuccessMsg] = useState(false);
+  const [educationErrorMsg, setEducationErrorMsg] = useState<string | null>(null);
+
+  // Sync educationForm with personalInfo.education
+  useEffect(() => {
+    if (personalInfo.education) {
+      setEducationForm(personalInfo.education);
+    }
+  }, [personalInfo.education]);
+
+  const handleSaveEducation = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    setSavingEducation(true);
+    setEducationErrorMsg(null);
+    try {
+      await updatePersonalInfo({
+        education: educationForm,
+      });
+      setEducationSuccessMsg(true);
+      setTimeout(() => setEducationSuccessMsg(false), 3500);
+    } catch (err: any) {
+      console.error(err);
+      setEducationErrorMsg(err.message || 'Failed to update education section.');
+    } finally {
+      setSavingEducation(false);
+    }
+  };
+
+  // Academic Profiles URL state
+  const canonicalProfilesConfig = [
+    {
+      key: 'linkedin',
+      name: 'LinkedIn',
+      label: 'LinkedIn',
+      icon: 'work',
+      desc: 'Professional Network & Updates',
+      defaultUrl: 'https://linkedin.com/in/muhammad-rezaul-haider',
+      placeholder: 'https://linkedin.com/in/muhammad-rezaul-haider',
+    },
+    {
+      key: 'scholar',
+      name: 'Scholar',
+      label: 'Google Scholar',
+      icon: 'school',
+      desc: 'Citations & Academic Indexing',
+      defaultUrl: 'https://scholar.google.com/citations?user=rezaulhaider',
+      placeholder: 'https://scholar.google.com/citations?user=rezaulhaider',
+    },
+    {
+      key: 'orcid',
+      name: 'ORCID',
+      label: 'ORCID',
+      icon: 'fingerprint',
+      desc: 'Unique Academic Identifier',
+      defaultUrl: 'https://orcid.org/0009-0004-8192-3341',
+      placeholder: 'https://orcid.org/0009-0004-8192-3341',
+    },
+    {
+      key: 'researchgate',
+      name: 'ResearchGate',
+      label: 'ResearchGate',
+      icon: 'science',
+      desc: 'Working Papers & Preprints',
+      defaultUrl: 'https://researchgate.net/profile/Muhammad-Rezaul-Haider',
+      placeholder: 'https://researchgate.net/profile/Muhammad-Rezaul-Haider',
+    },
+  ];
+
+  const [profileUrls, setProfileUrls] = useState<Record<string, string>>({
+    linkedin: 'https://linkedin.com/in/muhammad-rezaul-haider',
+    scholar: 'https://scholar.google.com/citations?user=rezaulhaider',
+    orcid: 'https://orcid.org/0009-0004-8192-3341',
+    researchgate: 'https://researchgate.net/profile/Muhammad-Rezaul-Haider',
+  });
+  const [savingProfiles, setSavingProfiles] = useState(false);
+  const [profilesSuccessMsg, setProfilesSuccessMsg] = useState(false);
+  const [profilesErrorMsg, setProfilesErrorMsg] = useState<string | null>(null);
+
+  // Sync profile URLs from personalInfo.socialLinks whenever updated
+  useEffect(() => {
+    const urls: Record<string, string> = {
+      linkedin: 'https://linkedin.com/in/muhammad-rezaul-haider',
+      scholar: 'https://scholar.google.com/citations?user=rezaulhaider',
+      orcid: 'https://orcid.org/0009-0004-8192-3341',
+      researchgate: 'https://researchgate.net/profile/Muhammad-Rezaul-Haider',
+    };
+
+    if (personalInfo.socialLinks && personalInfo.socialLinks.length > 0) {
+      personalInfo.socialLinks.forEach((item) => {
+        const sName = (item.name || '').toLowerCase().trim();
+        const sUrl = (item.url || '').toLowerCase();
+        if (sName.includes('linkedin') || sUrl.includes('linkedin.com')) {
+          urls.linkedin = item.url || '';
+        } else if (sName.includes('scholar') || sUrl.includes('scholar.google')) {
+          urls.scholar = item.url || '';
+        } else if (sName.includes('orcid') || sUrl.includes('orcid.org')) {
+          urls.orcid = item.url || '';
+        } else if (sName.includes('researchgate') || sUrl.includes('researchgate.net')) {
+          urls.researchgate = item.url || '';
+        }
+      });
+    }
+
+    setProfileUrls(urls);
+  }, [personalInfo.socialLinks]);
+
+  const handleSaveAcademicProfiles = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    setSavingProfiles(true);
+    setProfilesErrorMsg(null);
+    try {
+      const updatedSocialLinks = [
+        {
+          name: 'LinkedIn',
+          handle: 'muhammad-rezaul-haider',
+          url: profileUrls.linkedin.trim() || 'https://linkedin.com/in/muhammad-rezaul-haider',
+          icon: 'work',
+          desc: 'Professional Network & Updates',
+        },
+        {
+          name: 'Scholar',
+          handle: 'Muhammad Rezaul Haider',
+          url: profileUrls.scholar.trim() || 'https://scholar.google.com/citations?user=rezaulhaider',
+          icon: 'school',
+          desc: 'Citations & Academic Indexing',
+        },
+        {
+          name: 'ORCID',
+          handle: '0009-0004-8192-3341',
+          url: profileUrls.orcid.trim() || 'https://orcid.org/0009-0004-8192-3341',
+          icon: 'fingerprint',
+          desc: 'Unique Academic Identifier',
+        },
+        {
+          name: 'ResearchGate',
+          handle: 'Muhammad-Rezaul-Haider',
+          url: profileUrls.researchgate.trim() || 'https://researchgate.net/profile/Muhammad-Rezaul-Haider',
+          icon: 'science',
+          desc: 'Working Papers & Preprints',
+        },
+      ];
+
+      await updatePersonalInfo({
+        socialLinks: updatedSocialLinks,
+      });
+
+      setProfilesSuccessMsg(true);
+      setTimeout(() => setProfilesSuccessMsg(false), 3500);
+    } catch (err: any) {
+      console.error(err);
+      setProfilesErrorMsg(err.message || 'Failed to update academic profile links.');
+    } finally {
+      setSavingProfiles(false);
+    }
+  };
 
   // Login form states if not logged in
   const [email, setEmail] = useState('Fahimhaider0124@gmail.com');
@@ -99,7 +273,7 @@ export const AdminPageScreen: React.FC<AdminPageScreenProps> = ({
   if (!isAdmin) {
     return (
       <div className="w-full max-w-md mx-auto px-6 py-16 md:py-24">
-        <div className="bg-[#f7f9fc] rounded-2xl p-8 neumorphic-card border border-white/80 space-y-6 shadow-xl">
+        <div className="bg-[#FAF9F6] rounded-2xl p-8 neumorphic-card border border-[#e5e2db] space-y-6 shadow-xl">
           <div className="text-center space-y-3">
             <div className="w-14 h-14 mx-auto rounded-full neumorphic-inset flex items-center justify-center text-[#004c4c]">
               <span className="material-symbols-outlined text-2xl">lock</span>
@@ -147,11 +321,11 @@ export const AdminPageScreen: React.FC<AdminPageScreenProps> = ({
             </button>
 
             <div className="flex items-center my-3">
-              <div className="flex-grow border-t border-[#d8dadd]"></div>
+              <div className="flex-grow border-t border-[#e5e2db]"></div>
               <span className="px-3 text-[11px] text-[#486363] uppercase tracking-wider font-semibold">
                 Or with password
               </span>
-              <div className="flex-grow border-t border-[#d8dadd]"></div>
+              <div className="flex-grow border-t border-[#e5e2db]"></div>
             </div>
 
             <form onSubmit={handleEmailSubmit} className="space-y-3">
@@ -221,7 +395,7 @@ export const AdminPageScreen: React.FC<AdminPageScreenProps> = ({
   return (
     <div className="w-full max-w-[1140px] mx-auto px-6 md:px-12 py-10 md:py-16 space-y-8">
       {/* Top Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-[#d8dadd]">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 pb-6 border-b border-[#e5e2db]">
         <div className="flex items-center space-x-3">
           <div className="w-12 h-12 rounded-2xl neumorphic-inset flex items-center justify-center text-[#004c4c]">
             <span className="material-symbols-outlined text-2xl">admin_panel_settings</span>
@@ -263,14 +437,16 @@ export const AdminPageScreen: React.FC<AdminPageScreenProps> = ({
       </div>
 
       {/* Tabs Navigation */}
-      <div className="flex overflow-x-auto gap-2 pb-2 border-b border-[#d8dadd]/60">
+      <div className="flex overflow-x-auto gap-2 pb-2 border-b border-[#e5e2db]">
         {[
           { id: 'inbox', label: `Inbox Messages (${unreadMessages.length})`, icon: 'mail' },
+          { id: 'education', label: 'Education Section', icon: 'school' },
           { id: 'publications', label: `Publications (${publications?.length || 0})`, icon: 'menu_book' },
           { id: 'notes', label: `Notes & Archive (${notes?.length || 0})`, icon: 'edit_note' },
           { id: 'timeline', label: `Research Timeline (${researchTimeline?.length || 0})`, icon: 'history_edu' },
           { id: 'experience', label: `Experience (${experience?.length || 0})`, icon: 'work' },
           { id: 'awards', label: `Awards & Honors (${awards?.length || 0})`, icon: 'military_tech' },
+          { id: 'profiles', label: 'Academic Profiles (4)', icon: 'share' },
           { id: 'profile', label: 'Home Page & Bio', icon: 'person' },
         ].map((tab) => {
           const isActive = activeTab === tab.id;
@@ -392,6 +568,442 @@ export const AdminPageScreen: React.FC<AdminPageScreenProps> = ({
                 <span>Select a message from the left list to view details and reply.</span>
               </div>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Tab: Education Section Editor & Subsections */}
+      {activeTab === 'education' && (
+        <div className="space-y-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+            <div>
+              <h3 className="font-headline text-lg font-bold text-[#004c4c] flex items-center gap-2">
+                <span className="material-symbols-outlined text-2xl">school</span>
+                <span>Education Section & Subsections</span>
+              </h3>
+              <p className="text-xs text-[#486363]">
+                Manage all fields and subsections displayed under Education on the public home page and in your CV.
+              </p>
+            </div>
+            <div className="flex flex-wrap gap-2">
+              <button
+                type="button"
+                onClick={() => onOpenProfileModal('education')}
+                className="px-3 py-1.5 rounded-xl neumorphic-btn text-xs font-semibold text-[#004c4c] flex items-center gap-1.5 cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-sm">open_in_new</span>
+                <span>Open in Modal</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setEducationForm({
+                    degree: 'Bachelor of Economics (International Program for Islamic Economics and Finance)',
+                    institution: 'Universitas Muhammadiyah Yogyakarta (UMY)',
+                    location: 'Faculty of Economics and Business · Yogyakarta, Indonesia',
+                    period: '2022 - 2026',
+                    gpa: '3.94 / 4.00 (Summa Cum Laude Track)',
+                    focus: 'Applied Panel Econometrics, Labor Economics & Quantitative Methods',
+                    thesis: 'Threshold Dynamics and Empirical Modeling of Female Labor Force Participation in South & Southeast Asia',
+                    honors: 'Dean\'s Honor List, Academic Excellence Distinction Award',
+                    coursework: 'Advanced Econometrics, Macroeconomic Theory, Mathematical Economics, Applied Panel Data Methods, Time Series Analysis',
+                    description: 'Undergraduate study focused on quantitative econometrics, empirical labor dynamics, and public policy.',
+                    entries: educationForm.entries || [],
+                  });
+                }}
+                className="px-3 py-1.5 rounded-xl neumorphic-btn text-xs font-semibold text-[#486363] hover:text-[#191c1e] flex items-center gap-1.5 cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-sm">refresh</span>
+                <span>Reset Defaults</span>
+              </button>
+              <button
+                type="button"
+                disabled={savingEducation}
+                onClick={handleSaveEducation}
+                className="px-5 py-1.5 rounded-xl bg-[#004c4c] text-white hover:bg-[#006666] font-semibold text-xs flex items-center gap-1.5 shadow cursor-pointer disabled:opacity-50"
+              >
+                {savingEducation ? (
+                  <span className="material-symbols-outlined text-sm animate-spin">sync</span>
+                ) : (
+                  <span className="material-symbols-outlined text-sm">save</span>
+                )}
+                <span>Save Education</span>
+              </button>
+            </div>
+          </div>
+
+          {educationSuccessMsg && (
+            <div className="p-4 rounded-xl bg-teal-50 border border-teal-200 text-teal-900 text-xs flex items-center gap-2">
+              <span className="material-symbols-outlined text-base text-[#004c4c]">check_circle</span>
+              <span className="font-semibold">
+                Education section and all subsections successfully saved to Firestore! Live on Home page.
+              </span>
+            </div>
+          )}
+
+          {educationErrorMsg && (
+            <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 text-xs flex items-center gap-2">
+              <span className="material-symbols-outlined text-base text-rose-600">error</span>
+              <span>{educationErrorMsg}</span>
+            </div>
+          )}
+
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            {/* Left Form: All Subsections */}
+            <form
+              onSubmit={handleSaveEducation}
+              className="lg:col-span-7 space-y-5"
+            >
+              {/* Subsection 1: Primary Degree & Institution */}
+              <div className="neumorphic-card p-6 space-y-4">
+                <div className="flex items-center gap-2 border-b border-[#e5e2db] pb-3">
+                  <div className="w-7 h-7 rounded-full bg-[#004c4c] text-white flex items-center justify-center font-bold text-xs">
+                    1
+                  </div>
+                  <div>
+                    <h4 className="font-headline text-sm font-bold text-[#004c4c]">
+                      Primary Degree & Institution
+                    </h4>
+                    <p className="text-[11px] text-[#486363]">Core program credentials</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold text-[#004c4c] mb-1">
+                      Degree / Qualification Title <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={educationForm.degree || ''}
+                      onChange={(e) =>
+                        setEducationForm({ ...educationForm, degree: e.target.value })
+                      }
+                      placeholder="Bachelor of Economics (International Program for Islamic Economics and Finance)"
+                      className="w-full px-3.5 py-2.5 rounded-xl text-xs md:text-sm neumorphic-input text-[#191c1e] bg-[#FAF9F6] border border-[#e5e2db]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-[#004c4c] mb-1">
+                      University / Institution Name <span className="text-rose-500">*</span>
+                    </label>
+                    <input
+                      type="text"
+                      required
+                      value={educationForm.institution || ''}
+                      onChange={(e) =>
+                        setEducationForm({ ...educationForm, institution: e.target.value })
+                      }
+                      placeholder="Universitas Muhammadiyah Yogyakarta (UMY)"
+                      className="w-full px-3.5 py-2.5 rounded-xl text-xs md:text-sm neumorphic-input text-[#191c1e] bg-[#FAF9F6] border border-[#e5e2db]"
+                    />
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    <div>
+                      <label className="block text-xs font-bold text-[#486363] mb-1">
+                        Academic Period / Timeline
+                      </label>
+                      <input
+                        type="text"
+                        value={educationForm.period || ''}
+                        onChange={(e) =>
+                          setEducationForm({ ...educationForm, period: e.target.value })
+                        }
+                        placeholder="2022 - 2026"
+                        className="w-full px-3.5 py-2 rounded-xl text-xs md:text-sm neumorphic-input text-[#191c1e] bg-[#FAF9F6] border border-[#e5e2db]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-bold text-[#486363] mb-1">
+                        Department / Location
+                      </label>
+                      <input
+                        type="text"
+                        value={educationForm.location || ''}
+                        onChange={(e) =>
+                          setEducationForm({ ...educationForm, location: e.target.value })
+                        }
+                        placeholder="Faculty of Economics and Business · Yogyakarta, Indonesia"
+                        className="w-full px-3.5 py-2 rounded-xl text-xs md:text-sm neumorphic-input text-[#191c1e] bg-[#FAF9F6] border border-[#e5e2db]"
+                      />
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Subsection 2: Standing & Specialization */}
+              <div className="neumorphic-card p-6 space-y-4">
+                <div className="flex items-center gap-2 border-b border-[#e5e2db] pb-3">
+                  <div className="w-7 h-7 rounded-full bg-[#004c4c] text-white flex items-center justify-center font-bold text-xs">
+                    2
+                  </div>
+                  <div>
+                    <h4 className="font-headline text-sm font-bold text-[#004c4c]">
+                      Academic Standing & Specialization
+                    </h4>
+                    <p className="text-[11px] text-[#486363]">Grades, honors track, and field of focus</p>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-xs font-bold text-[#004c4c] mb-1 flex items-center gap-1">
+                      <span className="material-symbols-outlined text-sm">workspace_premium</span>
+                      <span>Academic Standing / GPA</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={educationForm.gpa || ''}
+                      onChange={(e) =>
+                        setEducationForm({ ...educationForm, gpa: e.target.value })
+                      }
+                      placeholder="3.94 / 4.00 (Summa Cum Laude Track)"
+                      className="w-full px-3.5 py-2.5 rounded-xl text-xs md:text-sm neumorphic-input text-[#191c1e] bg-[#FAF9F6] border border-[#e5e2db]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-[#004c4c] mb-1 flex items-center gap-1">
+                      <span className="material-symbols-outlined text-sm">psychology</span>
+                      <span>Specialization / Concentration</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={educationForm.focus || ''}
+                      onChange={(e) =>
+                        setEducationForm({ ...educationForm, focus: e.target.value })
+                      }
+                      placeholder="Applied Panel Econometrics, Labor Economics & Quantitative Methods"
+                      className="w-full px-3.5 py-2.5 rounded-xl text-xs md:text-sm neumorphic-input text-[#191c1e] bg-[#FAF9F6] border border-[#e5e2db]"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Subsection 3: Thesis, Honors & Coursework */}
+              <div className="neumorphic-card p-6 space-y-4">
+                <div className="flex items-center gap-2 border-b border-[#e5e2db] pb-3">
+                  <div className="w-7 h-7 rounded-full bg-[#004c4c] text-white flex items-center justify-center font-bold text-xs">
+                    3
+                  </div>
+                  <div>
+                    <h4 className="font-headline text-sm font-bold text-[#004c4c]">
+                      Thesis, Distinctions & Key Coursework
+                    </h4>
+                    <p className="text-[11px] text-[#486363]">Research capstone and academic achievements</p>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <div>
+                    <label className="block text-xs font-bold text-[#004c4c] mb-1 flex items-center gap-1">
+                      <span className="material-symbols-outlined text-sm">menu_book</span>
+                      <span>Undergraduate Thesis / Capstone / Research Project</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={educationForm.thesis || ''}
+                      onChange={(e) =>
+                        setEducationForm({ ...educationForm, thesis: e.target.value })
+                      }
+                      placeholder="Threshold Dynamics and Empirical Modeling of Female Labor Force Participation in South & Southeast Asia"
+                      className="w-full px-3.5 py-2.5 rounded-xl text-xs md:text-sm neumorphic-input text-[#191c1e] bg-[#FAF9F6] border border-[#e5e2db]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-[#004c4c] mb-1 flex items-center gap-1">
+                      <span className="material-symbols-outlined text-sm">military_tech</span>
+                      <span>Academic Honors, Awards & Distinctions</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={educationForm.honors || ''}
+                      onChange={(e) =>
+                        setEducationForm({ ...educationForm, honors: e.target.value })
+                      }
+                      placeholder="Dean's Honor List, Academic Excellence Distinction Award"
+                      className="w-full px-3.5 py-2.5 rounded-xl text-xs md:text-sm neumorphic-input text-[#191c1e] bg-[#FAF9F6] border border-[#e5e2db]"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-[#004c4c] mb-1 flex items-center gap-1">
+                      <span className="material-symbols-outlined text-sm">auto_stories</span>
+                      <span>Relevant Coursework / Core Modules (Comma-separated)</span>
+                    </label>
+                    <input
+                      type="text"
+                      value={educationForm.coursework || ''}
+                      onChange={(e) =>
+                        setEducationForm({ ...educationForm, coursework: e.target.value })
+                      }
+                      placeholder="Advanced Econometrics, Macroeconomic Theory, Mathematical Economics, Applied Panel Data Methods, Time Series Analysis"
+                      className="w-full px-3.5 py-2.5 rounded-xl text-xs md:text-sm neumorphic-input text-[#191c1e] bg-[#FAF9F6] border border-[#e5e2db]"
+                    />
+                    <p className="text-[11px] text-[#486363] mt-1">Separate course titles with commas. Each course is rendered as a clean tag on the home page.</p>
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-bold text-[#486363] mb-1">
+                      Additional Study Summary / Description
+                    </label>
+                    <textarea
+                      rows={2}
+                      value={educationForm.description || ''}
+                      onChange={(e) =>
+                        setEducationForm({ ...educationForm, description: e.target.value })
+                      }
+                      placeholder="Undergraduate study focused on quantitative econometrics, empirical labor dynamics, and public policy."
+                      className="w-full px-3.5 py-2.5 rounded-xl text-xs md:text-sm neumorphic-input text-[#191c1e] bg-[#FAF9F6] border border-[#e5e2db]"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex items-center justify-between pt-2">
+                <span className="text-xs text-[#486363]">
+                  All changes are saved to Firestore database.
+                </span>
+                <button
+                  type="submit"
+                  disabled={savingEducation}
+                  className="px-6 py-2.5 rounded-xl bg-[#004c4c] text-white hover:bg-[#006666] font-semibold text-xs sm:text-sm flex items-center gap-2 cursor-pointer shadow disabled:opacity-50"
+                >
+                  {savingEducation ? (
+                    <span className="material-symbols-outlined text-base animate-spin">sync</span>
+                  ) : (
+                    <span className="material-symbols-outlined text-base">save</span>
+                  )}
+                  <span>Save All Education Subsections</span>
+                </button>
+              </div>
+            </form>
+
+            {/* Right Column: Live Card Preview */}
+            <div className="lg:col-span-5 space-y-4">
+              <div className="flex items-center justify-between">
+                <h4 className="font-headline text-sm font-bold text-[#004c4c] flex items-center gap-1.5">
+                  <span className="material-symbols-outlined text-base">preview</span>
+                  <span>Live Home Page Card Preview</span>
+                </h4>
+                <button
+                  onClick={onNavigateHome}
+                  className="text-xs text-[#004c4c] hover:underline font-semibold flex items-center gap-1 cursor-pointer"
+                >
+                  <span>View Live Site</span>
+                  <span className="material-symbols-outlined text-xs">arrow_forward</span>
+                </button>
+              </div>
+
+              {/* Preview Container */}
+              <div className="neumorphic-card p-6 space-y-5 border-2 border-teal-200/80 bg-white/70">
+                <div className="flex flex-col sm:flex-row sm:items-baseline justify-between gap-2 border-b border-[#e5e2db] pb-4">
+                  <div className="space-y-1">
+                    <h3 className="font-display text-base md:text-lg font-bold text-[#191c1e]">
+                      {educationForm.degree || 'Degree Program Title'}
+                    </h3>
+                    <p className="text-sm font-semibold text-[#004c4c]">
+                      {educationForm.institution || 'Institution Name'}
+                    </p>
+                    {educationForm.location && (
+                      <p className="text-xs text-[#486363] flex items-center gap-1">
+                        <span className="material-symbols-outlined text-xs">location_on</span>
+                        <span>{educationForm.location}</span>
+                      </p>
+                    )}
+                  </div>
+                  {educationForm.period && (
+                    <span className="text-xs font-semibold text-[#486363] neumorphic-inset px-3 py-1 rounded-full shrink-0">
+                      {educationForm.period}
+                    </span>
+                  )}
+                </div>
+
+                <div className="space-y-2.5 text-xs text-[#3f4948]">
+                  {educationForm.gpa && (
+                    <div className="flex items-start gap-2 p-2.5 rounded-xl neumorphic-inset-box">
+                      <span className="material-symbols-outlined text-[#004c4c] text-base shrink-0">
+                        workspace_premium
+                      </span>
+                      <div>
+                        <strong className="text-[#004c4c] block text-[11px]">Academic Standing</strong>
+                        <span>{educationForm.gpa}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {educationForm.focus && (
+                    <div className="flex items-start gap-2 p-2.5 rounded-xl neumorphic-inset-box">
+                      <span className="material-symbols-outlined text-[#004c4c] text-base shrink-0">
+                        psychology
+                      </span>
+                      <div>
+                        <strong className="text-[#004c4c] block text-[11px]">Specialization</strong>
+                        <span>{educationForm.focus}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {educationForm.thesis && (
+                    <div className="flex items-start gap-2 p-2.5 rounded-xl neumorphic-inset-box">
+                      <span className="material-symbols-outlined text-[#004c4c] text-base shrink-0">
+                        menu_book
+                      </span>
+                      <div>
+                        <strong className="text-[#004c4c] block text-[11px]">Thesis / Research Capstone</strong>
+                        <span>{educationForm.thesis}</span>
+                      </div>
+                    </div>
+                  )}
+
+                  {educationForm.honors && (
+                    <div className="flex items-start gap-2 p-2.5 rounded-xl neumorphic-inset-box">
+                      <span className="material-symbols-outlined text-[#004c4c] text-base shrink-0">
+                        military_tech
+                      </span>
+                      <div>
+                        <strong className="text-[#004c4c] block text-[11px]">Honors & Distinctions</strong>
+                        <span>{educationForm.honors}</span>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {educationForm.coursework && (
+                  <div className="pt-2 border-t border-[#e5e2db]/70 space-y-1.5">
+                    <span className="text-[11px] font-bold text-[#004c4c] uppercase tracking-wider flex items-center gap-1">
+                      <span className="material-symbols-outlined text-xs">auto_stories</span>
+                      <span>Relevant Coursework:</span>
+                    </span>
+                    <div className="flex flex-wrap gap-1.5">
+                      {educationForm.coursework
+                        .split(/[,;\n]+/)
+                        .map((c) => c.trim())
+                        .filter(Boolean)
+                        .map((course, idx) => (
+                          <span
+                            key={idx}
+                            className="px-2 py-0.5 rounded-md text-[11px] font-medium bg-[#FAF9F6] border border-[#e5e2db] text-[#3f4948]"
+                          >
+                            {course}
+                          </span>
+                        ))}
+                    </div>
+                  </div>
+                )}
+
+                {educationForm.description && (
+                  <p className="text-xs text-[#486363] leading-relaxed pt-1">
+                    {educationForm.description}
+                  </p>
+                )}
+              </div>
+            </div>
           </div>
         </div>
       )}
@@ -703,7 +1315,143 @@ export const AdminPageScreen: React.FC<AdminPageScreenProps> = ({
         </div>
       )}
 
-      {/* Tab 6: Home Page & Bio Management */}
+      {/* Tab 7: Academic & Professional Profiles Management */}
+      {activeTab === 'profiles' && (
+        <div className="space-y-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+            <div>
+              <h3 className="font-headline text-lg font-bold text-[#004c4c]">
+                Academic & Professional Profiles
+              </h3>
+              <p className="text-xs text-[#486363]">
+                Configure and save live URLs for the four academic profiles. Changes are saved to persistent Firestore storage and update the public contact section immediately.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => {
+                  setProfileUrls({
+                    linkedin: 'https://linkedin.com/in/muhammad-rezaul-haider',
+                    scholar: 'https://scholar.google.com/citations?user=rezaulhaider',
+                    orcid: 'https://orcid.org/0009-0004-8192-3341',
+                    researchgate: 'https://researchgate.net/profile/Muhammad-Rezaul-Haider',
+                  });
+                }}
+                className="px-3 py-1.5 rounded-xl neumorphic-btn text-xs font-semibold text-[#486363] hover:text-[#191c1e] cursor-pointer"
+              >
+                Reset to Defaults
+              </button>
+              <button
+                type="button"
+                onClick={() => onOpenProfileModal('social')}
+                className="px-3.5 py-1.5 rounded-xl neumorphic-btn text-xs font-semibold text-[#004c4c] flex items-center gap-1.5 cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-sm">open_in_new</span>
+                <span>Open in Modal</span>
+              </button>
+            </div>
+          </div>
+
+          {profilesSuccessMsg && (
+            <div className="p-4 rounded-xl bg-teal-50 border border-teal-200 text-[#004c4c] text-xs sm:text-sm font-semibold flex items-center gap-2 animate-in fade-in">
+              <span className="material-symbols-outlined text-base">check_circle</span>
+              <span>Academic & Professional Profiles saved successfully and updated live across the website!</span>
+            </div>
+          )}
+
+          {profilesErrorMsg && (
+            <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs sm:text-sm font-semibold flex items-center gap-2 animate-in fade-in">
+              <span className="material-symbols-outlined text-base">error</span>
+              <span>{profilesErrorMsg}</span>
+            </div>
+          )}
+
+          <form onSubmit={handleSaveAcademicProfiles} className="space-y-4">
+            {canonicalProfilesConfig.map((item) => {
+              const currentVal = profileUrls[item.key] ?? item.defaultUrl;
+              return (
+                <div
+                  key={item.key}
+                  className="neumorphic-card p-6 space-y-3"
+                >
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                    <div className="flex items-center gap-3">
+                      <div className="w-12 h-12 rounded-full bg-[#FAF9F6] flex items-center justify-center text-[#004c4c] border border-[#e5e2db] shadow-[-3px_-3px_7px_rgba(255,255,255,0.9),3px_3px_7px_#dedbd2] shrink-0">
+                        <span className="material-symbols-outlined text-2xl">
+                          {item.icon}
+                        </span>
+                      </div>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h4 className="font-headline text-base font-bold text-[#004c4c]">
+                            {item.label}
+                          </h4>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-50 text-[#004c4c] border border-teal-200">
+                            {item.desc}
+                          </span>
+                        </div>
+                        <p className="text-xs text-[#486363]">Icon: <code className="text-[#004c4c] font-mono">{item.icon}</code></p>
+                      </div>
+                    </div>
+
+                    {currentVal && (
+                      <a
+                        href={currentVal}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-xs text-[#004c4c] hover:underline font-semibold self-start sm:self-auto py-1 px-2.5 rounded-lg hover:bg-teal-50/60"
+                      >
+                        <span>Test Saved Link</span>
+                        <span className="material-symbols-outlined text-xs">open_in_new</span>
+                      </a>
+                    )}
+                  </div>
+
+                  <div>
+                    <label className="block text-xs font-semibold text-[#486363] mb-1.5">
+                      {item.label} Profile URL:
+                    </label>
+                    <input
+                      type="url"
+                      required
+                      value={currentVal}
+                      onChange={(e) =>
+                        setProfileUrls({
+                          ...profileUrls,
+                          [item.key]: e.target.value,
+                        })
+                      }
+                      placeholder={item.placeholder}
+                      className="w-full px-4 py-2.5 rounded-xl text-xs sm:text-sm neumorphic-input text-[#191c1e] bg-[#FAF9F6] border border-[#e5e2db]"
+                    />
+                  </div>
+                </div>
+              );
+            })}
+
+            <div className="flex items-center justify-between pt-4 border-t border-[#e5e2db]">
+              <span className="text-xs text-[#486363] hidden sm:inline">
+                Clicking save writes changes directly to persistent database.
+              </span>
+              <button
+                type="submit"
+                disabled={savingProfiles}
+                className="px-6 py-2.5 rounded-xl bg-[#004c4c] text-white hover:bg-[#006666] font-semibold text-xs sm:text-sm flex items-center gap-2 cursor-pointer shadow disabled:opacity-50"
+              >
+                {savingProfiles ? (
+                  <span className="material-symbols-outlined text-base animate-spin">sync</span>
+                ) : (
+                  <span className="material-symbols-outlined text-base">save</span>
+                )}
+                <span>Save Profile URLs</span>
+              </button>
+            </div>
+          </form>
+        </div>
+      )}
+
+      {/* Tab 8: Home Page & Bio Management */}
       {activeTab === 'profile' && (
         <div className="space-y-6">
           <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
@@ -717,8 +1465,15 @@ export const AdminPageScreen: React.FC<AdminPageScreenProps> = ({
             </div>
             <div className="flex flex-wrap gap-2">
               <button
-                onClick={() => onOpenProfileModal('cv')}
+                onClick={() => setActiveTab('education')}
                 className="px-3 py-1.5 rounded-xl bg-[#004c4c] text-white hover:bg-[#006666] font-semibold text-xs flex items-center gap-1.5 shadow cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-sm">school</span>
+                <span>Edit Education</span>
+              </button>
+              <button
+                onClick={() => onOpenProfileModal('cv')}
+                className="px-3 py-1.5 rounded-xl bg-teal-800 text-white hover:bg-teal-700 font-semibold text-xs flex items-center gap-1.5 shadow cursor-pointer"
               >
                 <span className="material-symbols-outlined text-sm">description</span>
                 <span>Manage / Upload CV</span>
@@ -757,6 +1512,13 @@ export const AdminPageScreen: React.FC<AdminPageScreenProps> = ({
               >
                 <span className="material-symbols-outlined text-sm">bar_chart</span>
                 <span>Edit Skills</span>
+              </button>
+              <button
+                onClick={() => setActiveTab('profiles')}
+                className="px-3 py-1.5 rounded-xl bg-[#004c4c] text-white hover:bg-[#006666] font-semibold text-xs flex items-center gap-1.5 shadow cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-sm">share</span>
+                <span>Academic Profiles</span>
               </button>
             </div>
           </div>
@@ -857,6 +1619,75 @@ export const AdminPageScreen: React.FC<AdminPageScreenProps> = ({
             </div>
           </div>
 
+          {/* Education Section Summary Card */}
+          <div className="neumorphic-card p-6 space-y-4 border border-teal-200/60 bg-white/60">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center space-x-3">
+                <div className="w-12 h-12 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center text-[#004c4c]">
+                  <span className="material-symbols-outlined text-2xl">school</span>
+                </div>
+                <div>
+                  <h4 className="font-headline text-base font-bold text-[#004c4c]">
+                    Education Section & Subsections
+                  </h4>
+                  <p className="text-xs text-[#486363] mt-0.5">
+                    {personalInfo.education?.degree} · {personalInfo.education?.institution}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <button
+                  onClick={() => onOpenProfileModal('education')}
+                  className="px-3.5 py-2 rounded-xl neumorphic-btn text-xs font-semibold text-[#004c4c] flex items-center gap-1.5 cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-sm">open_in_new</span>
+                  <span>Modal Edit</span>
+                </button>
+                <button
+                  onClick={() => setActiveTab('education')}
+                  className="px-3.5 py-2 rounded-xl bg-[#004c4c] text-white hover:bg-[#006666] text-xs font-semibold flex items-center gap-1.5 shadow cursor-pointer"
+                >
+                  <span className="material-symbols-outlined text-sm">edit</span>
+                  <span>Edit All Subsections</span>
+                </button>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-3 pt-2">
+              <div className="neumorphic-inset-box p-3 rounded-xl">
+                <span className="text-[10px] font-bold text-[#486363] uppercase block">Standing / GPA</span>
+                <span className="text-xs font-semibold text-[#191c1e] truncate block">
+                  {personalInfo.education?.gpa || 'Not set'}
+                </span>
+              </div>
+              <div className="neumorphic-inset-box p-3 rounded-xl">
+                <span className="text-[10px] font-bold text-[#486363] uppercase block">Specialization</span>
+                <span className="text-xs font-semibold text-[#191c1e] truncate block">
+                  {personalInfo.education?.focus || 'Not set'}
+                </span>
+              </div>
+              <div className="neumorphic-inset-box p-3 rounded-xl">
+                <span className="text-[10px] font-bold text-[#486363] uppercase block">Period</span>
+                <span className="text-xs font-semibold text-[#191c1e] truncate block">
+                  {personalInfo.education?.period || 'Not set'}
+                </span>
+              </div>
+              <div className="neumorphic-inset-box p-3 rounded-xl">
+                <span className="text-[10px] font-bold text-[#486363] uppercase block">Honors</span>
+                <span className="text-xs font-semibold text-[#191c1e] truncate block">
+                  {personalInfo.education?.honors || 'Not set'}
+                </span>
+              </div>
+            </div>
+
+            {personalInfo.education?.thesis && (
+              <div className="p-3 rounded-xl neumorphic-inset-box text-xs text-[#3f4948]">
+                <strong className="text-[#004c4c]">Thesis Capstone:</strong> {personalInfo.education.thesis}
+              </div>
+            )}
+          </div>
+
           {/* Research Interests List */}
           <div className="neumorphic-card p-6 space-y-3">
             <div className="flex items-center justify-between">
@@ -909,6 +1740,58 @@ export const AdminPageScreen: React.FC<AdminPageScreenProps> = ({
                   </div>
                 </div>
               ))}
+            </div>
+          </div>
+
+          {/* Academic & Professional Profiles Overview Card */}
+          <div className="neumorphic-card p-6 space-y-4">
+            <div className="flex items-center justify-between">
+              <div>
+                <h4 className="font-headline text-base font-bold text-[#004c4c] flex items-center gap-2">
+                  <span className="material-symbols-outlined text-lg">share</span>
+                  <span>Academic & Professional Profiles (4)</span>
+                </h4>
+                <p className="text-xs text-[#486363] mt-0.5">
+                  Live URLs for LinkedIn, Google Scholar, ORCID, and ResearchGate.
+                </p>
+              </div>
+              <button
+                onClick={() => setActiveTab('profiles')}
+                className="text-xs font-semibold text-[#004c4c] hover:underline flex items-center gap-1 cursor-pointer"
+              >
+                <span>Edit All URLs</span>
+                <span className="material-symbols-outlined text-xs">arrow_forward</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              {canonicalProfilesConfig.map((item) => {
+                const currentVal = profileUrls[item.key] ?? item.defaultUrl;
+                return (
+                  <div key={item.key} className="neumorphic-inset-box p-3.5 flex items-center justify-between gap-3">
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-8 h-8 rounded-full bg-[#FAF9F6] flex items-center justify-center text-[#004c4c] border border-[#e5e2db] shrink-0">
+                        <span className="material-symbols-outlined text-base">{item.icon}</span>
+                      </div>
+                      <div className="min-w-0">
+                        <span className="font-bold text-xs text-[#004c4c] block">{item.label}</span>
+                        <span className="text-[11px] text-[#486363] block truncate">{currentVal}</span>
+                      </div>
+                    </div>
+                    {currentVal && (
+                      <a
+                        href={currentVal}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-[#004c4c] hover:text-[#006666] shrink-0 p-1"
+                        title="Open Link"
+                      >
+                        <span className="material-symbols-outlined text-sm">open_in_new</span>
+                      </a>
+                    )}
+                  </div>
+                );
+              })}
             </div>
           </div>
         </div>

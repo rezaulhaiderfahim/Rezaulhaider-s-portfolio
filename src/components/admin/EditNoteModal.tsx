@@ -258,8 +258,8 @@ export const EditNoteModal: React.FC<EditNoteModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-xs animate-fadeIn">
-      <div className="bg-[#f7f9fc] rounded-3xl max-w-3xl w-full max-h-[92vh] overflow-y-auto shadow-2xl p-6 md:p-8 space-y-6">
-        <div className="flex justify-between items-center pb-3 border-b border-gray-200">
+      <div className="bg-[#FAF9F6] rounded-3xl max-w-3xl w-full max-h-[92vh] overflow-y-auto shadow-2xl p-6 md:p-8 space-y-6 border border-[#e5e2db]">
+        <div className="flex justify-between items-center pb-3 border-b border-[#e5e2db]">
           <div className="flex items-center gap-2">
             <span className="material-symbols-outlined text-[#004c4c] text-2xl">
               edit_note
@@ -270,7 +270,7 @@ export const EditNoteModal: React.FC<EditNoteModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-full text-gray-500 hover:text-gray-800 hover:bg-gray-200/50 cursor-pointer"
+            className="p-1.5 rounded-full text-[#486363] hover:text-[#191c1e] hover:bg-[#eeece5] cursor-pointer"
           >
             <span className="material-symbols-outlined">close</span>
           </button>

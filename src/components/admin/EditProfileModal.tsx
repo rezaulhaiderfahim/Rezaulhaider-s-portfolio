@@ -286,34 +286,99 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
     }
   };
 
-  // --- Social Links Handlers ---
-  const handleSaveSocial = () => {
-    if (!newSocial.name.trim() || !newSocial.url.trim()) {
-      setErrorMsg('Social platform name and URL are required.');
-      return;
-    }
+  // --- Social / Academic Profiles Handlers ---
+  const canonicalProfilesConfig = [
+    {
+      key: 'linkedin',
+      name: 'LinkedIn',
+      label: 'LinkedIn',
+      icon: 'work',
+      desc: 'Professional Network & Updates',
+      defaultUrl: 'https://linkedin.com/in/muhammad-rezaul-haider',
+      placeholder: 'https://linkedin.com/in/username',
+    },
+    {
+      key: 'scholar',
+      name: 'Scholar',
+      label: 'Google Scholar',
+      icon: 'school',
+      desc: 'Citations & Academic Indexing',
+      defaultUrl: 'https://scholar.google.com/citations?user=rezaulhaider',
+      placeholder: 'https://scholar.google.com/citations?user=...',
+    },
+    {
+      key: 'orcid',
+      name: 'ORCID',
+      label: 'ORCID',
+      icon: 'fingerprint',
+      desc: 'Unique Academic Identifier',
+      defaultUrl: 'https://orcid.org/0009-0004-8192-3341',
+      placeholder: 'https://orcid.org/0000-0000-0000-0000',
+    },
+    {
+      key: 'researchgate',
+      name: 'ResearchGate',
+      label: 'ResearchGate',
+      icon: 'science',
+      desc: 'Working Papers & Preprints',
+      defaultUrl: 'https://researchgate.net/profile/Muhammad-Rezaul-Haider',
+      placeholder: 'https://researchgate.net/profile/username',
+    },
+  ];
 
-    let updated = [...(formData.socialLinks || [])];
-    if (editingSocialIndex !== null) {
-      updated[editingSocialIndex] = { ...newSocial };
-    } else {
-      updated.push({ ...newSocial });
-    }
+  const getProfileUrl = (profileKey: string) => {
+    const cfg = canonicalProfilesConfig.find((c) => c.key === profileKey);
+    if (!cfg) return '';
+    const match = formData.socialLinks?.find((s) => {
+      const sName = (s.name || '').toLowerCase().trim();
+      const sUrl = (s.url || '').toLowerCase();
+      if (profileKey === 'linkedin') return sName.includes('linkedin') || sUrl.includes('linkedin.com');
+      if (profileKey === 'scholar') return sName.includes('scholar') || sUrl.includes('scholar.google');
+      if (profileKey === 'orcid') return sName.includes('orcid') || sUrl.includes('orcid.org');
+      if (profileKey === 'researchgate') return sName.includes('researchgate') || sUrl.includes('researchgate.net');
+      return false;
+    });
+    return match?.url !== undefined ? match.url : cfg.defaultUrl;
+  };
+
+  const handleProfileUrlChange = (profileKey: string, newUrl: string) => {
+    const filtered = (formData.socialLinks || []).filter(
+      (s) => !s.name?.toLowerCase().includes('github') && !s.url?.toLowerCase().includes('github.com')
+    );
+
+    const updated = canonicalProfilesConfig.map((cp) => {
+      const existing = filtered.find((s) => {
+        const sName = (s.name || '').toLowerCase().trim();
+        const sUrl = (s.url || '').toLowerCase();
+        if (cp.key === 'linkedin') return sName.includes('linkedin') || sUrl.includes('linkedin.com');
+        if (cp.key === 'scholar') return sName.includes('scholar') || sUrl.includes('scholar.google');
+        if (cp.key === 'orcid') return sName.includes('orcid') || sUrl.includes('orcid.org');
+        if (cp.key === 'researchgate') return sName.includes('researchgate') || sUrl.includes('researchgate.net');
+        return false;
+      });
+
+      if (cp.key === profileKey) {
+        return {
+          name: cp.name,
+          handle: existing?.handle || '',
+          url: newUrl,
+          icon: cp.icon,
+          desc: cp.desc,
+        };
+      }
+
+      return {
+        name: cp.name,
+        handle: existing?.handle || '',
+        url: existing?.url !== undefined ? existing.url : cp.defaultUrl,
+        icon: cp.icon,
+        desc: cp.desc,
+      };
+    });
 
     setFormData({
       ...formData,
       socialLinks: updated,
-    });
-
-    setNewSocial({ name: '', handle: '', url: '', icon: 'link', desc: '' });
-    setEditingSocialIndex(null);
-    setErrorMsg(null);
-  };
-
-  const handleDeleteSocial = (index: number) => {
-    setFormData({
-      ...formData,
-      socialLinks: formData.socialLinks.filter((_, idx) => idx !== index),
     });
   };
 
@@ -339,9 +404,9 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-2 sm:p-4 bg-slate-900/60 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-[#f7f9fc] rounded-2xl shadow-2xl w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden border border-white/80">
+      <div className="bg-[#FAF9F6] rounded-2xl shadow-2xl w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden border border-[#e5e2db]">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#d8dadd] bg-[#f7f9fc] shrink-0">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[#e5e2db] bg-[#FAF9F6] shrink-0">
           <div className="flex items-center space-x-3">
             <div className="w-10 h-10 rounded-xl neumorphic-inset flex items-center justify-center text-[#004c4c]">
               <span className="material-symbols-outlined text-xl">admin_panel_settings</span>
@@ -357,14 +422,14 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-full text-[#486363] hover:text-[#191c1e] hover:bg-slate-200/60 transition-colors cursor-pointer"
+            className="p-1.5 rounded-full text-[#486363] hover:text-[#191c1e] hover:bg-[#eeece5] transition-colors cursor-pointer"
           >
             <span className="material-symbols-outlined text-xl">close</span>
           </button>
         </div>
 
         {/* Tab Navigation */}
-        <div className="flex overflow-x-auto border-b border-[#d8dadd] px-6 bg-[#f7f9fc] shrink-0 gap-1 sm:gap-2">
+        <div className="flex overflow-x-auto border-b border-[#e5e2db] px-6 bg-[#FAF9F6] shrink-0 gap-1 sm:gap-2">
           {[
             { id: 'photo', label: 'Profile Picture', icon: 'account_circle' },
             { id: 'cv', label: 'Curriculum Vitae (CV)', icon: 'description' },
@@ -387,7 +452,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
             },
             {
               id: 'social',
-              label: `Social & Profiles (${formData.socialLinks?.length || 0})`,
+              label: 'Academic Profiles (4)',
               icon: 'share',
             },
           ].map((tab) => {
@@ -542,7 +607,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                         )}
                       </div>
                       <p className="text-[11px] text-[#486363]">
-                        Supports direct links from Unsplash, Google Drive, Imgur, Cloudinary, LinkedIn, GitHub, or any public host.
+                        Supports direct links from Google Drive, Imgur, Cloudinary, LinkedIn, or any public host.
                       </p>
                     </div>
                   </div>
@@ -924,49 +989,95 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
               </div>
             )}
 
-            {/* TAB 2: EDUCATION */}
+            {/* TAB 2: EDUCATION & SUBSECTIONS */}
             {activeTab === 'education' && (
-              <div className="space-y-4">
-                <div className="neumorphic-inset-box p-5 space-y-4">
-                  <h4 className="font-semibold text-xs text-[#004c4c] uppercase tracking-wider flex items-center gap-2">
-                    <span className="material-symbols-outlined text-sm">school</span>
-                    <span>Current Highest Degree & Academic Standing</span>
-                  </h4>
+              <div className="space-y-6">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
+                    <h3 className="font-headline text-base font-bold text-[#004c4c] flex items-center gap-2">
+                      <span className="material-symbols-outlined text-lg">school</span>
+                      <span>Education & Academic Background</span>
+                    </h3>
+                    <p className="text-xs text-[#486363]">
+                      Edit degree qualifications, institutional affiliation, GPA standing, specialization, thesis capstone, honors, and coursework.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFormData({
+                        ...formData,
+                        education: {
+                          degree: 'Bachelor of Economics (International Program for Islamic Economics and Finance)',
+                          institution: 'Universitas Muhammadiyah Yogyakarta (UMY)',
+                          location: 'Faculty of Economics and Business · Yogyakarta, Indonesia',
+                          period: '2022 - 2026',
+                          gpa: '3.94 / 4.00 (Summa Cum Laude Track)',
+                          focus: 'Applied Panel Econometrics, Labor Economics & Quantitative Methods',
+                          thesis: 'Threshold Dynamics and Empirical Modeling of Female Labor Force Participation in South & Southeast Asia',
+                          honors: 'Dean\'s Honor List, Academic Excellence Distinction Award',
+                          coursework: 'Advanced Econometrics, Macroeconomic Theory, Mathematical Economics, Applied Panel Data Methods, Time Series Analysis',
+                          description: 'Undergraduate study focused on quantitative econometrics, empirical labor dynamics, and public policy.',
+                          entries: formData.education?.entries || [],
+                        },
+                      });
+                    }}
+                    className="text-xs text-[#004c4c] hover:underline font-semibold self-start sm:self-auto cursor-pointer"
+                  >
+                    Reset to Default Values
+                  </button>
+                </div>
+
+                {/* Main Degree Card */}
+                <div className="neumorphic-card p-5 md:p-6 space-y-5 border border-teal-100">
+                  <div className="flex items-center gap-2 border-b border-[#e5e2db] pb-3">
+                    <span className="w-8 h-8 rounded-full bg-teal-50 text-[#004c4c] flex items-center justify-center font-bold text-xs border border-teal-200">
+                      1
+                    </span>
+                    <div>
+                      <h4 className="font-headline text-sm font-bold text-[#004c4c]">
+                        Primary Degree & Institution
+                      </h4>
+                      <p className="text-[11px] text-[#486363]">Core program credentials displayed in hero and education card</p>
+                    </div>
+                  </div>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-xs font-semibold text-[#486363] mb-1">
-                        Degree Title
+                        Degree / Qualification Title <span className="text-rose-500">*</span>
                       </label>
                       <input
                         type="text"
-                        value={formData.education.degree}
+                        required
+                        value={formData.education?.degree || ''}
                         onChange={(e) =>
                           setFormData({
                             ...formData,
                             education: { ...formData.education, degree: e.target.value },
                           })
                         }
-                        placeholder="Master of Science in Economics"
-                        className="w-full px-3.5 py-2 rounded-xl text-xs md:text-sm neumorphic-input text-[#191c1e]"
+                        placeholder="Bachelor of Economics (International Program for Islamic Economics and Finance)"
+                        className="w-full px-3.5 py-2.5 rounded-xl text-xs md:text-sm neumorphic-input text-[#191c1e] bg-[#FAF9F6] border border-[#e5e2db]"
                       />
                     </div>
 
                     <div>
                       <label className="block text-xs font-semibold text-[#486363] mb-1">
-                        University / Institution
+                        University / Institution <span className="text-rose-500">*</span>
                       </label>
                       <input
                         type="text"
-                        value={formData.education.institution}
+                        required
+                        value={formData.education?.institution || ''}
                         onChange={(e) =>
                           setFormData({
                             ...formData,
                             education: { ...formData.education, institution: e.target.value },
                           })
                         }
-                        placeholder="Quaid-i-Azam University, Islamabad"
-                        className="w-full px-3.5 py-2 rounded-xl text-xs md:text-sm neumorphic-input text-[#191c1e]"
+                        placeholder="Universitas Muhammadiyah Yogyakarta (UMY)"
+                        className="w-full px-3.5 py-2.5 rounded-xl text-xs md:text-sm neumorphic-input text-[#191c1e] bg-[#FAF9F6] border border-[#e5e2db]"
                       />
                     </div>
                   </div>
@@ -974,57 +1085,187 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-xs font-semibold text-[#486363] mb-1">
-                        Academic Period
+                        Academic Period / Years Attended
                       </label>
                       <input
                         type="text"
-                        value={formData.education.period}
+                        value={formData.education?.period || ''}
                         onChange={(e) =>
                           setFormData({
                             ...formData,
                             education: { ...formData.education, period: e.target.value },
                           })
                         }
-                        placeholder="2023 – 2025"
-                        className="w-full px-3.5 py-2 rounded-xl text-xs md:text-sm neumorphic-input text-[#191c1e]"
+                        placeholder="2022 - 2026"
+                        className="w-full px-3.5 py-2.5 rounded-xl text-xs md:text-sm neumorphic-input text-[#191c1e] bg-[#FAF9F6] border border-[#e5e2db]"
                       />
                     </div>
 
                     <div>
                       <label className="block text-xs font-semibold text-[#486363] mb-1">
-                        Academic Standing / GPA
+                        Department / Location
                       </label>
                       <input
                         type="text"
-                        value={formData.education.gpa}
+                        value={formData.education?.location || ''}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            education: { ...formData.education, location: e.target.value },
+                          })
+                        }
+                        placeholder="Faculty of Economics and Business · Yogyakarta, Indonesia"
+                        className="w-full px-3.5 py-2.5 rounded-xl text-xs md:text-sm neumorphic-input text-[#191c1e] bg-[#FAF9F6] border border-[#e5e2db]"
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Subsections: Academic Standing & Specialization */}
+                <div className="neumorphic-card p-5 md:p-6 space-y-5 border border-teal-100">
+                  <div className="flex items-center gap-2 border-b border-[#e5e2db] pb-3">
+                    <span className="w-8 h-8 rounded-full bg-teal-50 text-[#004c4c] flex items-center justify-center font-bold text-xs border border-teal-200">
+                      2
+                    </span>
+                    <div>
+                      <h4 className="font-headline text-sm font-bold text-[#004c4c]">
+                        Academic Standing & Specialization
+                      </h4>
+                      <p className="text-[11px] text-[#486363]">Grades, class ranking, and key economic focus areas</p>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-[#486363] mb-1 flex items-center gap-1">
+                        <span className="material-symbols-outlined text-sm text-[#004c4c]">workspace_premium</span>
+                        <span>Academic Standing / GPA / Class Rank</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.education?.gpa || ''}
                         onChange={(e) =>
                           setFormData({
                             ...formData,
                             education: { ...formData.education, gpa: e.target.value },
                           })
                         }
-                        placeholder="CGPA 3.84 / 4.00 (Distinction)"
-                        className="w-full px-3.5 py-2 rounded-xl text-xs md:text-sm neumorphic-input text-[#191c1e]"
+                        placeholder="3.94 / 4.00 (Summa Cum Laude Track)"
+                        className="w-full px-3.5 py-2.5 rounded-xl text-xs md:text-sm neumorphic-input text-[#191c1e] bg-[#FAF9F6] border border-[#e5e2db]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-[#486363] mb-1 flex items-center gap-1">
+                        <span className="material-symbols-outlined text-sm text-[#004c4c]">psychology</span>
+                        <span>Specialization / Concentration</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.education?.focus || ''}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            education: { ...formData.education, focus: e.target.value },
+                          })
+                        }
+                        placeholder="Applied Panel Econometrics, Labor Economics & Quantitative Methods"
+                        className="w-full px-3.5 py-2.5 rounded-xl text-xs md:text-sm neumorphic-input text-[#191c1e] bg-[#FAF9F6] border border-[#e5e2db]"
                       />
                     </div>
                   </div>
+                </div>
 
-                  <div>
-                    <label className="block text-xs font-semibold text-[#486363] mb-1">
-                      Academic Specialization / Concentration
-                    </label>
-                    <input
-                      type="text"
-                      value={formData.education.focus}
-                      onChange={(e) =>
-                        setFormData({
-                          ...formData,
-                          education: { ...formData.education, focus: e.target.value },
-                        })
-                      }
-                      placeholder="Applied Econometrics, Labor Economics, Institutional Economics"
-                      className="w-full px-3.5 py-2 rounded-xl text-xs md:text-sm neumorphic-input text-[#191c1e]"
-                    />
+                {/* Subsections: Thesis, Honors & Coursework */}
+                <div className="neumorphic-card p-5 md:p-6 space-y-5 border border-teal-100">
+                  <div className="flex items-center gap-2 border-b border-[#e5e2db] pb-3">
+                    <span className="w-8 h-8 rounded-full bg-teal-50 text-[#004c4c] flex items-center justify-center font-bold text-xs border border-teal-200">
+                      3
+                    </span>
+                    <div>
+                      <h4 className="font-headline text-sm font-bold text-[#004c4c]">
+                        Thesis, Honors & Relevant Coursework Subsections
+                      </h4>
+                      <p className="text-[11px] text-[#486363]">Highlight undergraduate research, academic distinctions, and modules</p>
+                    </div>
+                  </div>
+
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block text-xs font-semibold text-[#486363] mb-1 flex items-center gap-1">
+                        <span className="material-symbols-outlined text-sm text-[#004c4c]">menu_book</span>
+                        <span>Undergraduate Thesis / Capstone / Research Project</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.education?.thesis || ''}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            education: { ...formData.education, thesis: e.target.value },
+                          })
+                        }
+                        placeholder="Threshold Dynamics and Empirical Modeling of Female Labor Force Participation in South & Southeast Asia"
+                        className="w-full px-3.5 py-2.5 rounded-xl text-xs md:text-sm neumorphic-input text-[#191c1e] bg-[#FAF9F6] border border-[#e5e2db]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-[#486363] mb-1 flex items-center gap-1">
+                        <span className="material-symbols-outlined text-sm text-[#004c4c]">military_tech</span>
+                        <span>Honors, Scholarships & Distinctions</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.education?.honors || ''}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            education: { ...formData.education, honors: e.target.value },
+                          })
+                        }
+                        placeholder="Dean's Honor List, Academic Excellence Distinction Award"
+                        className="w-full px-3.5 py-2.5 rounded-xl text-xs md:text-sm neumorphic-input text-[#191c1e] bg-[#FAF9F6] border border-[#e5e2db]"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-[#486363] mb-1 flex items-center gap-1">
+                        <span className="material-symbols-outlined text-sm text-[#004c4c]">auto_stories</span>
+                        <span>Key Relevant Coursework / Core Modules (Comma-separated)</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={formData.education?.coursework || ''}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            education: { ...formData.education, coursework: e.target.value },
+                          })
+                        }
+                        placeholder="Advanced Econometrics, Macroeconomic Theory, Mathematical Economics, Applied Panel Data Methods, Time Series Analysis"
+                        className="w-full px-3.5 py-2.5 rounded-xl text-xs md:text-sm neumorphic-input text-[#191c1e] bg-[#FAF9F6] border border-[#e5e2db]"
+                      />
+                      <p className="text-[11px] text-[#486363] mt-1">Separate course titles with commas to display them as individual badges on the home page.</p>
+                    </div>
+
+                    <div>
+                      <label className="block text-xs font-semibold text-[#486363] mb-1">
+                        Additional Description / Study Focus Summary
+                      </label>
+                      <textarea
+                        rows={3}
+                        value={formData.education?.description || ''}
+                        onChange={(e) =>
+                          setFormData({
+                            ...formData,
+                            education: { ...formData.education, description: e.target.value },
+                          })
+                        }
+                        placeholder="Undergraduate study focused on quantitative econometrics, empirical labor dynamics, and public policy."
+                        className="w-full px-3.5 py-2.5 rounded-xl text-xs md:text-sm neumorphic-input text-[#191c1e] bg-[#FAF9F6] border border-[#e5e2db]"
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
@@ -1406,96 +1647,91 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
               </div>
             )}
 
-            {/* TAB 6: SOCIAL & ACADEMIC PROFILES */}
+            {/* TAB 6: ACADEMIC & PROFESSIONAL PROFILES */}
             {activeTab === 'social' && (
               <div className="space-y-6">
-                <div>
-                  <h3 className="font-headline text-base font-bold text-[#004c4c]">
-                    Social Media & Academic Profiles
-                  </h3>
-                  <p className="text-xs text-[#486363]">
-                    Manage links for Google Scholar, GitHub, LinkedIn, ResearchGate, Twitter, and Email.
-                  </p>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                  <div>
+                    <h3 className="font-headline text-base font-bold text-[#004c4c]">
+                      Academic & Professional Profiles
+                    </h3>
+                    <p className="text-xs text-[#486363]">
+                      Configure URLs for LinkedIn, Google Scholar, ORCID, and ResearchGate displayed publicly on the contact screen.
+                    </p>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const reset = canonicalProfilesConfig.map((cp) => ({
+                        name: cp.name,
+                        handle: '',
+                        url: cp.defaultUrl,
+                        icon: cp.icon,
+                        desc: cp.desc,
+                      }));
+                      setFormData({
+                        ...formData,
+                        socialLinks: reset,
+                      });
+                    }}
+                    className="text-xs text-[#004c4c] hover:underline font-semibold self-start sm:self-auto cursor-pointer"
+                  >
+                    Reset all 4 to default URLs
+                  </button>
                 </div>
 
-                {/* Add / Edit Social Form */}
-                <div className="neumorphic-card p-5 space-y-4 border border-teal-100">
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
-                    <div>
-                      <label className="block text-xs font-semibold text-[#486363] mb-1">
-                        Platform Name
-                      </label>
-                      <input
-                        type="text"
-                        value={newSocial.name}
-                        onChange={(e) => setNewSocial({ ...newSocial, name: e.target.value })}
-                        placeholder="e.g. Google Scholar, LinkedIn, GitHub"
-                        className="w-full px-3 py-2 rounded-xl text-xs neumorphic-input text-[#191c1e]"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-[#486363] mb-1">
-                        Handle / Display Username
-                      </label>
-                      <input
-                        type="text"
-                        value={newSocial.handle}
-                        onChange={(e) => setNewSocial({ ...newSocial, handle: e.target.value })}
-                        placeholder="e.g. fahim-haider-econ"
-                        className="w-full px-3 py-2 rounded-xl text-xs neumorphic-input text-[#191c1e]"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-semibold text-[#486363] mb-1">
-                        Full Web URL
-                      </label>
-                      <input
-                        type="url"
-                        value={newSocial.url}
-                        onChange={(e) => setNewSocial({ ...newSocial, url: e.target.value })}
-                        placeholder="https://scholar.google.com/..."
-                        className="w-full px-3 py-2 rounded-xl text-xs neumorphic-input text-[#191c1e]"
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex justify-end pt-2 border-t border-[#d8dadd]/60">
-                    <button
-                      type="button"
-                      onClick={handleSaveSocial}
-                      className="px-4 py-2 rounded-xl bg-[#004c4c] text-white hover:bg-[#006666] font-semibold text-xs flex items-center gap-1.5 shadow cursor-pointer"
-                    >
-                      <span className="material-symbols-outlined text-sm">add</span>
-                      <span>Add Social Link</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Existing Social Links */}
-                <div className="space-y-3">
-                  <span className="text-xs font-bold text-[#004c4c] uppercase tracking-wider block">
-                    Active Profiles ({formData.socialLinks?.length || 0}):
-                  </span>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                    {formData.socialLinks?.map((link, idx) => (
+                {/* 4 Profile Cards */}
+                <div className="space-y-4">
+                  {canonicalProfilesConfig.map((profile) => {
+                    const currentUrl = getProfileUrl(profile.key);
+                    return (
                       <div
-                        key={idx}
-                        className="neumorphic-inset-box p-3.5 flex items-center justify-between gap-2"
+                        key={profile.key}
+                        className="p-5 rounded-2xl bg-[#FAF9F6] border border-[#e5e2db] shadow-[-3px_-3px_7px_rgba(255,255,255,0.9),3px_3px_7px_#dedbd2] space-y-3"
                       >
-                        <div>
-                          <h5 className="font-bold text-xs text-[#004c4c]">{link.name}</h5>
-                          <p className="text-[11px] text-[#486363] truncate">{link.handle || link.url}</p>
+                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 rounded-full bg-[#FAF9F6] flex items-center justify-center text-[#004c4c] border border-[#e5e2db] shadow-inner shrink-0">
+                              <span className="material-symbols-outlined text-xl">
+                                {profile.icon}
+                              </span>
+                            </div>
+                            <div>
+                              <h4 className="font-headline text-sm font-bold text-[#004c4c]">
+                                {profile.label}
+                              </h4>
+                              <p className="text-[11px] text-[#486363]">{profile.desc}</p>
+                            </div>
+                          </div>
+
+                          {currentUrl && (
+                            <a
+                              href={currentUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="inline-flex items-center gap-1 text-xs text-[#004c4c] hover:underline font-medium self-start sm:self-auto"
+                            >
+                              <span>Test Link</span>
+                              <span className="material-symbols-outlined text-xs">open_in_new</span>
+                            </a>
+                          )}
                         </div>
-                        <button
-                          type="button"
-                          onClick={() => handleDeleteSocial(idx)}
-                          className="p-1 text-rose-600 hover:bg-rose-50 rounded cursor-pointer"
-                        >
-                          <span className="material-symbols-outlined text-sm">delete</span>
-                        </button>
+
+                        <div>
+                          <label className="block text-xs font-semibold text-[#486363] mb-1">
+                            {profile.label} URL
+                          </label>
+                          <input
+                            type="url"
+                            value={currentUrl}
+                            onChange={(e) => handleProfileUrlChange(profile.key, e.target.value)}
+                            placeholder={profile.placeholder}
+                            className="w-full px-4 py-2.5 rounded-xl text-xs sm:text-sm neumorphic-input text-[#191c1e] bg-[#FAF9F6] border border-[#e5e2db]"
+                          />
+                        </div>
                       </div>
-                    ))}
-                  </div>
+                    );
+                  })}
                 </div>
               </div>
             )}

@@ -36,7 +36,7 @@ export const AwardsScreen: React.FC = () => {
             <div
               key={conf.id}
               onClick={() => setSelectedAward(conf)}
-              className="neumorphic-card p-6 md:p-8 flex flex-col h-full space-y-4 hover:shadow-[inset_-4px_-4px_8px_#FFFFFF,inset_4px_4px_8px_#D1D9E6] transition-all duration-300 cursor-pointer group relative"
+              className="neumorphic-card p-6 md:p-8 flex flex-col h-full space-y-4 hover:shadow-[inset_-4px_-4px_8px_rgba(255,255,255,0.9),inset_4px_4px_8px_#dedbd2] transition-all duration-300 cursor-pointer group relative"
             >
               <div className="neumorphic-inset w-12 h-12 flex items-center justify-center text-[#004c4c] mb-2 shrink-0">
                 <span className="material-symbols-outlined">{conf.icon || 'forum'}</span>
@@ -76,7 +76,7 @@ export const AwardsScreen: React.FC = () => {
             <div
               key={award.id}
               onClick={() => setSelectedAward(award)}
-              className="neumorphic-card p-6 md:p-8 flex items-start space-x-5 md:space-x-6 hover:shadow-[inset_-4px_-4px_8px_#FFFFFF,inset_4px_4px_8px_#D1D9E6] transition-all duration-300 cursor-pointer group relative"
+              className="neumorphic-card p-6 md:p-8 flex items-start space-x-5 md:space-x-6 hover:shadow-[inset_-4px_-4px_8px_rgba(255,255,255,0.9),inset_4px_4px_8px_#dedbd2] transition-all duration-300 cursor-pointer group relative"
             >
               <div className="neumorphic-inset min-w-[56px] md:min-w-[64px] h-14 md:h-16 flex items-center justify-center text-[#004c4c] rounded-xl shrink-0">
                 <span className="material-symbols-outlined text-2xl md:text-3xl">
@@ -115,7 +115,7 @@ export const AwardsScreen: React.FC = () => {
             <div
               key={course.id}
               onClick={() => setSelectedAward(course)}
-              className="neumorphic-card p-6 md:p-8 flex items-start space-x-5 md:space-x-6 hover:shadow-[inset_-4px_-4px_8px_#FFFFFF,inset_4px_4px_8px_#D1D9E6] transition-all duration-300 cursor-pointer group relative"
+              className="neumorphic-card p-6 md:p-8 flex items-start space-x-5 md:space-x-6 hover:shadow-[inset_-4px_-4px_8px_rgba(255,255,255,0.9),inset_4px_4px_8px_#dedbd2] transition-all duration-300 cursor-pointer group relative"
             >
               <div className="neumorphic-inset min-w-[56px] md:min-w-[64px] h-14 md:h-16 flex items-center justify-center text-[#004c4c] rounded-xl shrink-0">
                 <span className="material-symbols-outlined text-2xl md:text-3xl">
@@ -143,14 +143,14 @@ export const AwardsScreen: React.FC = () => {
       {/* Interactive Detail Modal for Awards/Conferences */}
       {selectedAward && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
-          <div className="bg-[#f7f9fc] rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-white/80 p-6 md:p-8 space-y-5">
+          <div className="bg-[#FAF9F6] rounded-2xl shadow-2xl w-full max-w-lg overflow-hidden border border-[#e5e2db] p-6 md:p-8 space-y-5">
             <div className="flex justify-between items-start">
               <div className="neumorphic-inset w-12 h-12 rounded-xl flex items-center justify-center text-[#004c4c]">
                 <span className="material-symbols-outlined text-2xl">{selectedAward.icon}</span>
               </div>
               <button
                 onClick={() => setSelectedAward(null)}
-                className="p-1.5 rounded-full text-[#486363] hover:text-[#191c1e] hover:bg-slate-200/60 transition-colors cursor-pointer"
+                className="p-1.5 rounded-full text-[#486363] hover:text-[#191c1e] hover:bg-[#eeece5] transition-colors cursor-pointer"
               >
                 <span className="material-symbols-outlined text-xl">close</span>
               </button>
@@ -170,7 +170,7 @@ export const AwardsScreen: React.FC = () => {
               )}
             </div>
 
-            <p className="text-sm text-[#3f4948] leading-relaxed bg-[#eceef1]/40 p-4 rounded-xl">
+            <p className="text-sm text-[#3f4948] leading-relaxed bg-[#eeece5]/70 p-4 rounded-xl border border-[#e5e2db]/60">
               {selectedAward.description}
             </p>
 

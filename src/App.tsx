@@ -95,37 +95,102 @@ const SEO_CONFIG: Record<TabType, SeoMeta> = {
   },
 };
 
-const tabToPath = (tab: TabType): string => {
+export const tabToPath = (tab: TabType): string => {
   if (tab === 'home') return '/';
   if (tab === 'admin') return '/fahim1211';
   return `/${tab}`;
 };
 
-const pathToTab = (pathname: string): TabType => {
-  if (!pathname) return 'home';
-  const clean = pathname.split('?')[0].split('#')[0].replace(/^\/+|\/+$/g, '').toLowerCase();
-  if (clean === 'fahim1211' || clean === 'admin') return 'admin';
-  if (clean === 'research') return 'research';
-  if (clean === 'awards') return 'awards';
-  if (clean === 'contact') return 'contact';
-  if (clean === 'notes') return 'notes';
+export const resolveCurrentLocationToTab = (): TabType => {
+  if (typeof window === 'undefined') return 'home';
+
+  const pathname = window.location.pathname || '';
+  const search = window.location.search || '';
+  const hash = window.location.hash || '';
+
+  // 1. Check Query Parameters (?tab=fahim1211, ?page=admin, ?fahim1211, ?admin, etc.)
+  if (search) {
+    try {
+      const searchParams = new URLSearchParams(search);
+      const directKeys = ['fahim1211', 'admin', 'research', 'awards', 'notes', 'contact'];
+      for (const key of directKeys) {
+        if (searchParams.has(key)) {
+          return key === 'fahim1211' || key === 'admin' ? 'admin' : (key as TabType);
+        }
+      }
+
+      const paramValue =
+        searchParams.get('tab') ||
+        searchParams.get('page') ||
+        searchParams.get('p') ||
+        searchParams.get('section') ||
+        searchParams.get('view') ||
+        searchParams.get('path') ||
+        searchParams.get('route') ||
+        searchParams.get('screen');
+
+      if (paramValue) {
+        const val = paramValue.toLowerCase().trim().replace(/^\/+|\/+$/g, '');
+        if (val === 'fahim1211' || val === 'admin' || val === 'login' || val === 'portal' || val === 'dashboard' || val === 'cms') {
+          return 'admin';
+        }
+        if (val === 'research' || val === 'publications' || val === 'papers') return 'research';
+        if (val === 'awards' || val === 'honors' || val === 'fellowships') return 'awards';
+        if (val === 'contact' || val === 'inquiry' || val === 'message') return 'contact';
+        if (val === 'notes' || val === 'blog' || val === 'articles') return 'notes';
+        if (val === 'home' || val === '') return 'home';
+      }
+    } catch {
+      // Ignore query param parsing errors
+    }
+  }
+
+  // 2. Check Hash Fragment (#/fahim1211, #fahim1211, #/admin, #admin, etc.)
+  if (hash) {
+    const cleanHash = hash.replace(/^[#/]+/, '').split('?')[0].toLowerCase().trim();
+    if (cleanHash === 'fahim1211' || cleanHash === 'admin' || cleanHash === 'login' || cleanHash === 'portal' || cleanHash === 'dashboard') {
+      return 'admin';
+    }
+    if (cleanHash === 'research' || cleanHash === 'publications' || cleanHash === 'papers') return 'research';
+    if (cleanHash === 'awards' || cleanHash === 'honors' || cleanHash === 'fellowships') return 'awards';
+    if (cleanHash === 'contact' || cleanHash === 'inquiry' || cleanHash === 'message') return 'contact';
+    if (cleanHash === 'notes' || cleanHash === 'blog' || cleanHash === 'articles') return 'notes';
+    if (cleanHash === 'home') return 'home';
+  }
+
+  // 3. Check Pathname (/fahim1211, /admin, /research, /awards, etc.)
+  if (pathname && pathname !== '/') {
+    const rawClean = pathname.split('?')[0].split('#')[0].toLowerCase().trim();
+    const segments = rawClean.split('/').filter(Boolean);
+
+    // Exact single segment matches
+    for (const seg of segments) {
+      if (seg === 'fahim1211' || seg === 'admin' || seg === 'login' || seg === 'portal' || seg === 'dashboard' || seg === 'cms') {
+        return 'admin';
+      }
+      if (seg === 'research' || seg === 'publications' || seg === 'papers') return 'research';
+      if (seg === 'awards' || seg === 'honors' || seg === 'fellowships') return 'awards';
+      if (seg === 'contact' || seg === 'inquiry' || seg === 'message') return 'contact';
+      if (seg === 'notes' || seg === 'blog' || seg === 'articles') return 'notes';
+    }
+
+    // Substring fallback check (e.g. if embedded in preview proxy URL)
+    if (rawClean.includes('fahim1211') || rawClean.endsWith('/admin')) return 'admin';
+    if (rawClean.includes('research')) return 'research';
+    if (rawClean.includes('awards')) return 'awards';
+    if (rawClean.includes('contact')) return 'contact';
+    if (rawClean.includes('notes')) return 'notes';
+  }
+
   return 'home';
 };
 
-function PortfolioApp() {
-  const [activeTab, setActiveTab] = useState<TabType>(() => {
-    // Determine initial tab from pathname or fallback hash
-    if (typeof window !== 'undefined') {
-      const pathTab = pathToTab(window.location.pathname);
-      if (pathTab !== 'home') return pathTab;
+export const pathToTab = (pathname: string): TabType => {
+  return resolveCurrentLocationToTab();
+};
 
-      const rawHash = window.location.hash.replace(/^[#/]+/, '').toLowerCase();
-      if (rawHash) {
-        return pathToTab(rawHash);
-      }
-    }
-    return 'home';
-  });
+function PortfolioApp() {
+  const [activeTab, setActiveTab] = useState<TabType>(() => resolveCurrentLocationToTab());
 
   const [selectedPublication, setSelectedPublication] = useState<Publication | null>(null);
   const [isCvModalOpen, setIsCvModalOpen] = useState(false);
@@ -164,43 +229,34 @@ function PortfolioApp() {
     setProfileModalState({ isOpen: true, tab });
   };
 
-  // Sync with browser history, popstate and hashchange events
+  // Sync with browser history, popstate, hashchange and URL changes
   useEffect(() => {
     const handleUrlChange = () => {
-      let tab = pathToTab(window.location.pathname);
-      if (tab === 'home') {
-        const hashClean = window.location.hash.replace(/^[#/]+/, '').toLowerCase();
-        if (hashClean) {
-          const hashTab = pathToTab(hashClean);
-          if (hashTab !== 'home') {
-            tab = hashTab;
-          }
-        }
-      }
-      setActiveTab(tab);
+      const resolved = resolveCurrentLocationToTab();
+      setActiveTab(resolved);
     };
 
-    // If loaded with a legacy hash fragment (#fahim1211, #research), normalize to real path
-    const hash = window.location.hash.replace(/^[#/]+/, '').toLowerCase();
-    if (hash && ['home', 'research', 'awards', 'contact', 'notes', 'fahim1211', 'admin'].includes(hash)) {
-      const targetTab = pathToTab(hash);
-      const targetPath = tabToPath(targetTab);
-      window.history.replaceState(null, '', targetPath);
-      setActiveTab(targetTab);
-    }
+    // Initial check on mount to ensure synchronization
+    handleUrlChange();
 
     window.addEventListener('popstate', handleUrlChange);
     window.addEventListener('hashchange', handleUrlChange);
+    window.addEventListener('app-navigate' as any, handleUrlChange);
+
     return () => {
       window.removeEventListener('popstate', handleUrlChange);
       window.removeEventListener('hashchange', handleUrlChange);
+      window.removeEventListener('app-navigate' as any, handleUrlChange);
     };
   }, []);
 
   // Update Page Title and Meta Tags per section
   useEffect(() => {
     const meta = SEO_CONFIG[activeTab] || SEO_CONFIG.home;
-    const baseDomain = 'https://[MY-ACTUAL-DOMAIN]';
+    const baseDomain =
+      typeof window !== 'undefined' && window.location.origin.startsWith('http')
+        ? window.location.origin
+        : 'https://rezaulhaider.vercel.app';
     const canonicalUrl = `${baseDomain}${meta.path === '/' ? '/' : meta.path}`;
 
     // Document Title
@@ -254,7 +310,7 @@ function PortfolioApp() {
   }, []);
 
   return (
-    <div className="bg-[#f7f9fc] text-[#191c1e] font-body min-h-screen flex flex-col antialiased selection:bg-[#004c4c] selection:text-white">
+    <div className="bg-[#F7F6F2] text-[#191c1e] font-body min-h-screen flex flex-col antialiased selection:bg-[#004c4c] selection:text-white">
       {/* Top Sticky Navigation */}
       <Navbar
         activeTab={activeTab}
@@ -267,6 +323,7 @@ function PortfolioApp() {
           <HomeScreen
             setActiveTab={handleTabChange}
             onOpenCvModal={() => setIsCvModalOpen(true)}
+            onOpenEditProfile={handleOpenProfileModal}
           />
         )}
 

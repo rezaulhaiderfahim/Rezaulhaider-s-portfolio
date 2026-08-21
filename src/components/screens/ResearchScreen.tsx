@@ -37,7 +37,7 @@ export const ResearchScreen: React.FC<ResearchScreenProps> = ({
 
         <div className="relative max-w-4xl mx-auto">
           {/* Central Timeline Vertical Line */}
-          <div className="absolute left-[39px] md:left-1/2 top-4 bottom-4 w-0.5 bg-[#d8dadd] -translate-x-1/2 rounded-full hidden md:block"></div>
+          <div className="absolute left-[39px] md:left-1/2 top-4 bottom-4 w-0.5 bg-[#e5e2db] -translate-x-1/2 rounded-full hidden md:block"></div>
 
           <div className="space-y-12 md:space-y-16 relative">
             {researchTimeline.map((item, idx) => {
@@ -135,7 +135,7 @@ export const ResearchScreen: React.FC<ResearchScreenProps> = ({
                 <div
                   key={pub.id}
                   onClick={() => onSelectPublication(pub)}
-                  className="neumorphic-card p-6 md:p-7 space-y-3 cursor-pointer hover:shadow-[inset_-4px_-4px_8px_#FFFFFF,inset_4px_4px_8px_#D1D9E6] transition-all duration-300 group relative"
+                  className="neumorphic-card p-6 md:p-7 space-y-3 cursor-pointer hover:shadow-[inset_-4px_-4px_8px_rgba(255,255,255,0.9),inset_4px_4px_8px_#dedbd2] transition-all duration-300 group relative"
                 >
                   <div className="flex justify-between items-start pr-4">
                     <span className="neumorphic-inset px-3 py-1 font-label-caps text-xs font-semibold text-[#006666]">

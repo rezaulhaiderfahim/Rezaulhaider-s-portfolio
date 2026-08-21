@@ -127,10 +127,12 @@
   "firestore": {
     "/users/{userId}": {
       "schema": "UserProfile",
-      "description": "User records and admin permissions",
+      "description": "User records and hardened admin role assignment",
       "allow": {
-        "read": "request.auth != null",
-        "write": "request.auth != null && (request.auth.uid == userId || request.auth.token.email.lower() == 'fahimhaider0124@gmail.com')"
+        "read": "request.auth != null && (request.auth.uid == userId || (request.auth.token.email != null && (request.auth.token.email.lower() == 'fahimhaider0124@gmail.com' || request.auth.token.email.lower() == 'rezaulhaiderfahim@gmail.com')))",
+        "create": "request.auth != null && request.auth.uid == userId && (request.resource.data.role != 'admin' || (request.auth.token.email != null && (request.auth.token.email.lower() == 'fahimhaider0124@gmail.com' || request.auth.token.email.lower() == 'rezaulhaiderfahim@gmail.com')))",
+        "update": "request.auth != null && (request.auth.token.email != null && (request.auth.token.email.lower() == 'fahimhaider0124@gmail.com' || request.auth.token.email.lower() == 'rezaulhaiderfahim@gmail.com'))",
+        "delete": "request.auth != null && (request.auth.token.email != null && (request.auth.token.email.lower() == 'fahimhaider0124@gmail.com' || request.auth.token.email.lower() == 'rezaulhaiderfahim@gmail.com'))"
       }
     },
     "/portfolio_data/{docId}": {

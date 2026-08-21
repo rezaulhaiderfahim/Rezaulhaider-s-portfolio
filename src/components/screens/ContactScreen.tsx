@@ -17,6 +17,53 @@ export const ContactScreen: React.FC<ContactScreenProps> = ({ onOpenComposeModal
     setTimeout(() => setCopied(false), 2500);
   };
 
+  // Map canonical 4 profiles dynamically from persistent personalInfo.socialLinks
+  const canonicalProfiles = [
+    {
+      key: 'linkedin',
+      name: 'LinkedIn',
+      icon: 'work',
+      defaultUrl: 'https://linkedin.com/in/muhammad-rezaul-haider',
+    },
+    {
+      key: 'scholar',
+      name: 'Scholar',
+      icon: 'school',
+      defaultUrl: 'https://scholar.google.com/citations?user=rezaulhaider',
+    },
+    {
+      key: 'orcid',
+      name: 'ORCID',
+      icon: 'fingerprint',
+      defaultUrl: 'https://orcid.org/0009-0004-8192-3341',
+    },
+    {
+      key: 'researchgate',
+      name: 'ResearchGate',
+      icon: 'science',
+      defaultUrl: 'https://researchgate.net/profile/Muhammad-Rezaul-Haider',
+    },
+  ];
+
+  // Resolve URLs dynamically from persistent data
+  const profilesToDisplay = canonicalProfiles.map((cp) => {
+    const found = personalInfo.socialLinks?.find((s) => {
+      const sName = (s.name || '').toLowerCase().trim();
+      const sUrl = (s.url || '').toLowerCase();
+      if (cp.key === 'linkedin') return sName.includes('linkedin') || sUrl.includes('linkedin.com');
+      if (cp.key === 'scholar') return sName.includes('scholar') || sUrl.includes('scholar.google');
+      if (cp.key === 'orcid') return sName.includes('orcid') || sUrl.includes('orcid.org');
+      if (cp.key === 'researchgate') return sName.includes('researchgate') || sUrl.includes('researchgate.net');
+      return false;
+    });
+
+    return {
+      name: cp.name,
+      icon: cp.icon,
+      url: found?.url?.trim() || cp.defaultUrl,
+    };
+  });
+
   return (
     <div className="w-full max-w-[1140px] mx-auto px-6 md:px-12 py-12 md:py-20 flex flex-col justify-center items-center space-y-12 md:space-y-16">
       {/* Header Section */}
@@ -30,13 +77,13 @@ export const ContactScreen: React.FC<ContactScreenProps> = ({ onOpenComposeModal
       </div>
 
       {/* Central Neumorphic Contact Card */}
-      <div className="w-full max-w-3xl bg-[#f7f9fc] rounded-2xl shadow-[-6px_-6px_14px_#FFFFFF,6px_6px_14px_#D1D9E6] p-8 md:p-14 relative overflow-hidden">
+      <div className="w-full max-w-3xl bg-[#FAF9F6] rounded-2xl shadow-[-6px_-6px_14px_rgba(255,255,255,0.9),6px_6px_14px_#dedbd2] border border-[#e5e2db] p-8 md:p-14 relative overflow-hidden">
         {/* Subtle atmospheric blob (pure CSS) */}
         <div className="absolute top-0 right-0 w-72 h-72 bg-[#004c4c]/5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 pointer-events-none"></div>
 
         {/* Primary Action: Email */}
         <div className="flex flex-col items-center text-center mb-12 relative z-10 space-y-6">
-          <span className="font-label-caps text-xs text-[#486363] uppercase tracking-widest block w-full shadow-[inset_-4px_-4px_8px_#FFFFFF,inset_4px_4px_8px_#D1D9E6] bg-[#f7f9fc] py-2 rounded-full max-w-xs mx-auto font-semibold">
+          <span className="font-label-caps text-xs text-[#486363] uppercase tracking-widest block w-full shadow-[inset_-4px_-4px_8px_rgba(255,255,255,0.9),inset_4px_4px_8px_#dedbd2] bg-[#F7F6F2] border border-[#e5e2db]/70 py-2 rounded-full max-w-xs mx-auto font-semibold">
             Direct Inquiry
           </span>
 
@@ -52,7 +99,7 @@ export const ContactScreen: React.FC<ContactScreenProps> = ({ onOpenComposeModal
             <div className="flex items-center justify-center gap-2">
               <button
                 onClick={handleCopyEmail}
-                className="text-xs text-[#486363] hover:text-[#004c4c] flex items-center gap-1 font-medium transition-colors cursor-pointer py-1 px-3 rounded-full hover:bg-slate-100/60"
+                className="text-xs text-[#486363] hover:text-[#004c4c] flex items-center gap-1 font-medium transition-colors cursor-pointer py-1 px-3 rounded-full hover:bg-[#eeece5]/70"
               >
                 <span className="material-symbols-outlined text-sm">
                   {copied ? 'check' : 'content_copy'}
@@ -64,7 +111,7 @@ export const ContactScreen: React.FC<ContactScreenProps> = ({ onOpenComposeModal
 
           <button
             onClick={onOpenComposeModal}
-            className="group inline-flex items-center gap-3 px-8 py-4 bg-[#f7f9fc] rounded-full shadow-[-6px_-6px_12px_#FFFFFF,6px_6px_12px_#D1D9E6] hover:shadow-[inset_-4px_-4px_8px_#FFFFFF,inset_4px_4px_8px_#D1D9E6] transition-all duration-300 text-[#004c4c] font-body text-sm md:text-base font-semibold cursor-pointer active:scale-[0.98]"
+            className="group inline-flex items-center gap-3 px-8 py-4 bg-[#FAF9F6] rounded-full shadow-[-6px_-6px_12px_rgba(255,255,255,0.9),6px_6px_12px_#dedbd2] hover:shadow-[inset_-4px_-4px_8px_rgba(255,255,255,0.9),inset_4px_4px_8px_#dedbd2] border border-[#e5e2db] transition-all duration-300 text-[#004c4c] font-body text-sm md:text-base font-semibold cursor-pointer active:scale-[0.98]"
           >
             <span
               className="material-symbols-outlined transition-transform group-hover:scale-110 text-[#004c4c]"
@@ -77,7 +124,7 @@ export const ContactScreen: React.FC<ContactScreenProps> = ({ onOpenComposeModal
         </div>
 
         {/* Neumorphic Divider */}
-        <div className="w-full h-px bg-[#d8dadd]/50 shadow-[inset_0px_1px_2px_#D1D9E6,inset_0px_-1px_2px_#FFFFFF] my-10"></div>
+        <div className="w-full h-px bg-[#e5e2db] shadow-[inset_0px_1px_2px_#dedbd2,inset_0px_-1px_2px_rgba(255,255,255,0.9)] my-10"></div>
 
         {/* Secondary Actions: Academic / Social Profiles */}
         <div className="text-center relative z-10 space-y-8">
@@ -86,7 +133,7 @@ export const ContactScreen: React.FC<ContactScreenProps> = ({ onOpenComposeModal
           </span>
 
           <div className="flex flex-wrap justify-center gap-6 md:gap-10">
-            {personalInfo.socialLinks?.map((profile) => (
+            {profilesToDisplay.map((profile) => (
               <a
                 key={profile.name}
                 href={profile.url}
@@ -97,7 +144,7 @@ export const ContactScreen: React.FC<ContactScreenProps> = ({ onOpenComposeModal
                 aria-label={`${profile.name} Profile`}
                 className="flex flex-col items-center gap-3 group cursor-pointer"
               >
-                <div className="w-14 h-14 md:w-16 md:h-16 rounded-full bg-[#f7f9fc] flex items-center justify-center text-[#004c4c] shadow-[-6px_-6px_12px_#FFFFFF,6px_6px_12px_#D1D9E6] group-hover:shadow-[inset_-4px_-4px_8px_#FFFFFF,inset_4px_4px_8px_#D1D9E6] transition-all duration-300">
+                <div className="w-14 h-14 md:w-16 md:h-16 rounded-full bg-[#FAF9F6] flex items-center justify-center text-[#004c4c] border border-[#e5e2db] shadow-[-6px_-6px_12px_rgba(255,255,255,0.9),6px_6px_12px_#dedbd2] group-hover:shadow-[inset_-4px_-4px_8px_rgba(255,255,255,0.9),inset_4px_4px_8px_#dedbd2] transition-all duration-300">
                   <span className="material-symbols-outlined text-2xl md:text-3xl">
                     {profile.icon}
                   </span>

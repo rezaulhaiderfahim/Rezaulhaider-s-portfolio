@@ -1,5 +1,7 @@
 export type TabType = 'home' | 'research' | 'awards' | 'contact' | 'notes' | 'admin';
 
+export type ProfileModalTab = 'photo' | 'cv' | 'bio' | 'education' | 'interests' | 'toolkit' | 'skills' | 'social';
+
 export interface NotePost {
   id: string;
   slug: string;
@@ -37,12 +39,32 @@ export interface SocialLink {
   desc: string;
 }
 
+export interface EducationEntry {
+  id?: string;
+  degree: string;
+  institution: string;
+  period: string;
+  location?: string;
+  gpa?: string;
+  focus?: string;
+  thesis?: string;
+  honors?: string;
+  coursework?: string;
+  description?: string;
+}
+
 export interface EducationInfo {
   degree: string;
   institution: string;
   period: string;
+  location?: string;
   gpa: string;
   focus: string;
+  thesis?: string;
+  honors?: string;
+  coursework?: string;
+  description?: string;
+  entries?: EducationEntry[];
 }
 
 export interface CvDocument {

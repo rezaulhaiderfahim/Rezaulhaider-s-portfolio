@@ -84,7 +84,7 @@ export const NotesScreen: React.FC<NotesScreenProps> = ({
   return (
     <div className="w-full max-w-[920px] mx-auto px-6 md:px-12 py-12 md:py-20 space-y-12">
       {/* Header */}
-      <header className="space-y-4 text-left border-b border-[#e2e8f0]/80 pb-8">
+      <header className="space-y-4 text-left border-b border-[#e5e2db] pb-8">
         <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full neumorphic-inset text-[11px] font-semibold text-[#004c4c]">
           <span className="material-symbols-outlined text-sm">edit_note</span>
           <span>Writing Archive</span>
@@ -111,7 +111,7 @@ export const NotesScreen: React.FC<NotesScreenProps> = ({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search notes..."
-            className="w-full pl-12 pr-10 py-3.5 rounded-2xl neumorphic-inset bg-[#f7f9fc] text-[#191c1e] placeholder-[#486363]/60 text-sm md:text-base focus:outline-none focus:ring-2 focus:ring-[#004c4c]/20 transition-all font-body"
+            className="w-full pl-12 pr-10 py-3.5 rounded-2xl neumorphic-inset bg-[#FAF9F6] text-[#191c1e] placeholder-[#486363]/60 text-sm md:text-base border border-[#e5e2db] focus:outline-none focus:ring-2 focus:ring-[#004c4c]/20 transition-all font-body"
           />
           {searchQuery && (
             <button
@@ -134,7 +134,7 @@ export const NotesScreen: React.FC<NotesScreenProps> = ({
                 className={`px-3.5 py-1.5 rounded-full whitespace-nowrap font-medium transition-all duration-200 cursor-pointer ${
                   isSelected
                     ? 'bg-[#004c4c] text-white shadow-sm font-semibold'
-                    : 'bg-[#f0f4f8] text-[#486363] hover:text-[#004c4c] hover:bg-[#e4ebf2]'
+                    : 'bg-[#eeece5] text-[#486363] hover:text-[#004c4c] hover:bg-[#e4e1d8]'
                 }`}
               >
                 {cat}
@@ -175,7 +175,7 @@ export const NotesScreen: React.FC<NotesScreenProps> = ({
               <article
                 key={note.id}
                 onClick={() => handleOpenNote(note)}
-                className="neumorphic-card p-6 md:p-7 rounded-2xl cursor-pointer hover:shadow-[inset_-3px_-3px_6px_#FFFFFF,inset_3px_3px_6px_#D1D9E6] transition-all duration-300 group text-left space-y-2.5"
+                className="neumorphic-card p-6 md:p-7 rounded-2xl cursor-pointer hover:shadow-[inset_-3px_-3px_6px_rgba(255,255,255,0.9),inset_3px_3px_6px_#dedbd2] transition-all duration-300 group text-left space-y-2.5"
               >
                 {/* Meta Header */}
                 <div className="flex flex-wrap items-center justify-between gap-2 text-xs md:text-[13px] text-[#486363]">
@@ -209,7 +209,7 @@ export const NotesScreen: React.FC<NotesScreenProps> = ({
                     {note.tags.slice(0, 3).map((tag) => (
                       <span
                         key={tag}
-                        className="text-[10px] text-[#486363] bg-[#f0f4f8] px-2 py-0.5 rounded"
+                        className="text-[10px] text-[#486363] bg-[#eeece5] px-2 py-0.5 rounded"
                       >
                         #{tag}
                       </span>

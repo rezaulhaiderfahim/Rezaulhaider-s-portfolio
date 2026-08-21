@@ -31,7 +31,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   };
 
   return (
-    <nav className="w-full sticky top-0 z-40 bg-[#f7f9fc] shadow-[-6px_-6px_12px_#FFFFFF,6px_6px_12px_#D1D9E6] transition-all duration-300">
+    <nav className="w-full sticky top-0 z-40 bg-[#F7F6F2] shadow-[-6px_-6px_12px_rgba(255,255,255,0.9),6px_6px_12px_#dedbd2] border-b border-[#e5e2db]/70 transition-all duration-300">
       <div className="flex justify-between items-center max-w-[1140px] mx-auto px-6 md:px-12 py-4 md:py-5">
         {/* Brand Name */}
         <button
@@ -52,7 +52,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 className={`relative px-4 py-1.5 rounded-full transition-all duration-200 cursor-pointer ${
                   isActive
                     ? 'text-[#004c4c] font-bold after:content-[""] after:absolute after:-bottom-1 after:left-1/2 after:-translate-x-1/2 after:w-1.5 after:h-1.5 after:bg-[#004c4c] after:rounded-full neumorphic-inset'
-                    : 'text-[#486363] hover:text-[#004c4c] hover:shadow-[inset_-3px_-3px_6px_#FFFFFF,inset_3px_3px_6px_#D1D9E6]'
+                    : 'text-[#486363] hover:text-[#004c4c] hover:shadow-[inset_-3px_-3px_6px_rgba(255,255,255,0.9),inset_3px_3px_6px_#dedbd2]'
                 }`}
               >
                 {item.label}
@@ -101,7 +101,7 @@ export const Navbar: React.FC<NavbarProps> = ({
 
       {/* Mobile Menu Dropdown */}
       {mobileMenuOpen && (
-        <div className="md:hidden bg-[#f7f9fc] border-t border-[#d8dadd]/50 px-6 py-4 space-y-2 shadow-[inset_0_4px_6px_rgba(0,0,0,0.02)] animate-in fade-in slide-in-from-top duration-200">
+        <div className="md:hidden bg-[#F7F6F2] border-t border-[#e5e2db] px-6 py-4 space-y-2 shadow-[inset_0_4px_6px_rgba(0,0,0,0.02)] animate-in fade-in slide-in-from-top duration-200">
           {navItems.map((item) => {
             const isActive = activeTab === item.id;
             return (
@@ -111,7 +111,7 @@ export const Navbar: React.FC<NavbarProps> = ({
                 className={`w-full text-left px-4 py-3 rounded-xl flex items-center justify-between font-medium transition-all ${
                   isActive
                     ? 'text-[#004c4c] font-bold neumorphic-inset'
-                    : 'text-[#486363] hover:text-[#004c4c] hover:bg-slate-100/50'
+                    : 'text-[#486363] hover:text-[#004c4c] hover:bg-[#eeece5]/60'
                 }`}
               >
                 <span>{item.label}</span>

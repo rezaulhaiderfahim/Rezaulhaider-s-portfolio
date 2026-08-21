@@ -59,10 +59,10 @@ export const CvModal: React.FC<CvModalProps> = ({ isOpen, onClose, onOpenAdminCv
 
   return (
     <div className={`fixed inset-0 z-50 flex items-center justify-center ${isFullscreen ? 'p-0' : 'p-2 sm:p-4 md:p-6'} bg-slate-900/70 backdrop-blur-sm animate-in fade-in duration-200`}>
-      <div className={`bg-[#f7f9fc] ${isFullscreen ? 'rounded-none w-full h-full max-w-none max-h-none' : 'rounded-2xl shadow-2xl w-full max-w-5xl h-[92vh] max-h-[92vh]'} flex flex-col overflow-hidden border border-white/80 transition-all duration-200`}>
+      <div className={`bg-[#F7F6F2] ${isFullscreen ? 'rounded-none w-full h-full max-w-none max-h-none' : 'rounded-2xl shadow-2xl w-full max-w-5xl h-[92vh] max-h-[92vh]'} flex flex-col overflow-hidden border border-[#e5e2db] transition-all duration-200`}>
         
         {/* Modal Header Toolbar */}
-        <div className="flex flex-wrap items-center justify-between px-4 sm:px-6 py-3.5 border-b border-[#d8dadd] bg-[#f7f9fc] gap-3">
+        <div className="flex flex-wrap items-center justify-between px-4 sm:px-6 py-3.5 border-b border-[#e5e2db] bg-[#F7F6F2] gap-3">
           <div className="flex items-center space-x-3">
             <div className="w-9 h-9 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center text-[#004c4c]">
               <span className="material-symbols-outlined text-xl">
@@ -132,7 +132,7 @@ export const CvModal: React.FC<CvModalProps> = ({ isOpen, onClose, onOpenAdminCv
             <button
               onClick={onClose}
               aria-label="Close CV Viewer"
-              className="p-1.5 rounded-full text-[#486363] hover:text-[#191c1e] hover:bg-slate-200/60 transition-colors cursor-pointer ml-1"
+              className="p-1.5 rounded-full text-[#486363] hover:text-[#191c1e] hover:bg-[#eeece5] transition-colors cursor-pointer ml-1"
             >
               <span className="material-symbols-outlined text-xl">close</span>
             </button>
@@ -140,7 +140,7 @@ export const CvModal: React.FC<CvModalProps> = ({ isOpen, onClose, onOpenAdminCv
         </div>
 
         {/* Modal Body: Uploaded Document View vs Formatted View */}
-        <div className="flex-1 overflow-hidden relative bg-[#f1f3f6]">
+        <div className="flex-1 overflow-hidden relative bg-[#F7F6F2]">
           {hasUploadedDoc && isPdf ? (
             /* PDF Document Viewer */
             <div className="w-full h-full flex flex-col bg-slate-900">
@@ -181,8 +181,8 @@ export const CvModal: React.FC<CvModalProps> = ({ isOpen, onClose, onOpenAdminCv
               </div>
 
               {/* Formatted Academic View for Instant In-Browser Reading */}
-              <div className="bg-[#f7f9fc] rounded-2xl p-6 md:p-10 space-y-8 text-[#191c1e] font-body text-sm md:text-base leading-relaxed border border-white/80 shadow-sm">
-                <div className="text-center border-b border-[#d8dadd] pb-6 space-y-2">
+              <div className="bg-[#FAF9F6] rounded-2xl p-6 md:p-10 space-y-8 text-[#191c1e] font-body text-sm md:text-base leading-relaxed border border-[#e5e2db] shadow-sm">
+                <div className="text-center border-b border-[#e5e2db] pb-6 space-y-2">
                   <h1 className="font-display text-2xl md:text-3xl font-bold text-[#004c4c]">
                     {personalInfo.name}
                   </h1>
@@ -204,7 +204,7 @@ export const CvModal: React.FC<CvModalProps> = ({ isOpen, onClose, onOpenAdminCv
 
                 {/* Education */}
                 <section className="space-y-3">
-                  <h3 className="font-display text-lg font-bold text-[#004c4c] uppercase tracking-wider border-b border-[#d8dadd]/60 pb-1">
+                  <h3 className="font-display text-lg font-bold text-[#004c4c] uppercase tracking-wider border-b border-[#e5e2db] pb-1">
                     Education
                   </h3>
                   <div className="space-y-1">
@@ -225,7 +225,7 @@ export const CvModal: React.FC<CvModalProps> = ({ isOpen, onClose, onOpenAdminCv
 
                 {/* Research Interests */}
                 <section className="space-y-2">
-                  <h3 className="font-display text-lg font-bold text-[#004c4c] uppercase tracking-wider border-b border-[#d8dadd]/60 pb-1">
+                  <h3 className="font-display text-lg font-bold text-[#004c4c] uppercase tracking-wider border-b border-[#e5e2db] pb-1">
                     Research Interests
                   </h3>
                   <p className="text-sm text-[#3f4948]">
@@ -235,7 +235,7 @@ export const CvModal: React.FC<CvModalProps> = ({ isOpen, onClose, onOpenAdminCv
 
                 {/* Publications & Working Papers */}
                 <section className="space-y-4">
-                  <h3 className="font-display text-lg font-bold text-[#004c4c] uppercase tracking-wider border-b border-[#d8dadd]/60 pb-1">
+                  <h3 className="font-display text-lg font-bold text-[#004c4c] uppercase tracking-wider border-b border-[#e5e2db] pb-1">
                     Publications & Working Papers
                   </h3>
                   <div className="space-y-3">
@@ -264,7 +264,7 @@ export const CvModal: React.FC<CvModalProps> = ({ isOpen, onClose, onOpenAdminCv
 
                 {/* Research & Fellowship Experience */}
                 <section className="space-y-4">
-                  <h3 className="font-display text-lg font-bold text-[#004c4c] uppercase tracking-wider border-b border-[#d8dadd]/60 pb-1">
+                  <h3 className="font-display text-lg font-bold text-[#004c4c] uppercase tracking-wider border-b border-[#e5e2db] pb-1">
                     Research & Fellowships
                   </h3>
                   <div className="space-y-4">
@@ -289,12 +289,12 @@ export const CvModal: React.FC<CvModalProps> = ({ isOpen, onClose, onOpenAdminCv
 
                 {/* Honors and Awards */}
                 <section className="space-y-3">
-                  <h3 className="font-display text-lg font-bold text-[#004c4c] uppercase tracking-wider border-b border-[#d8dadd]/60 pb-1">
+                  <h3 className="font-display text-lg font-bold text-[#004c4c] uppercase tracking-wider border-b border-[#e5e2db] pb-1">
                     Honors, Scholarships & Awards
                   </h3>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
                     {awards.map((award) => (
-                      <div key={award.id} className="p-3 rounded-lg bg-white/70 border border-slate-200/80">
+                      <div key={award.id} className="p-3 rounded-lg bg-[#FAF9F6] border border-[#e5e2db]">
                         <div className="flex justify-between items-start">
                           <span className="font-bold text-[#191c1e]">{award.title}</span>
                           <span className="text-teal-700 font-semibold">{award.tag}</span>
@@ -308,7 +308,7 @@ export const CvModal: React.FC<CvModalProps> = ({ isOpen, onClose, onOpenAdminCv
             </div>
           ) : (
             /* Structured Academic CV view when no specific file uploaded */
-            <div className="h-full overflow-y-auto p-6 md:p-10 space-y-8 text-[#191c1e] font-body text-sm md:text-base leading-relaxed bg-[#f7f9fc]">
+            <div className="h-full overflow-y-auto p-6 md:p-10 space-y-8 text-[#191c1e] font-body text-sm md:text-base leading-relaxed bg-[#F7F6F2]">
               {isAdmin && (
                 <div className="p-4 rounded-xl bg-teal-50 border border-teal-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
                   <div className="flex items-center gap-2 text-[#004c4c]">
@@ -330,7 +330,7 @@ export const CvModal: React.FC<CvModalProps> = ({ isOpen, onClose, onOpenAdminCv
               )}
 
               {/* Header info */}
-              <div className="text-center border-b border-[#d8dadd] pb-6 space-y-2">
+              <div className="text-center border-b border-[#e5e2db] pb-6 space-y-2">
                 <h1 className="font-display text-2xl md:text-3xl font-bold text-[#004c4c]">
                   {personalInfo.name}
                 </h1>
@@ -352,7 +352,7 @@ export const CvModal: React.FC<CvModalProps> = ({ isOpen, onClose, onOpenAdminCv
 
               {/* Education */}
               <section className="space-y-3">
-                <h3 className="font-display text-lg font-bold text-[#004c4c] uppercase tracking-wider border-b border-[#d8dadd]/60 pb-1">
+                <h3 className="font-display text-lg font-bold text-[#004c4c] uppercase tracking-wider border-b border-[#e5e2db] pb-1">
                   Education
                 </h3>
                 <div className="space-y-1">
@@ -373,7 +373,7 @@ export const CvModal: React.FC<CvModalProps> = ({ isOpen, onClose, onOpenAdminCv
 
               {/* Research Interests */}
               <section className="space-y-2">
-                <h3 className="font-display text-lg font-bold text-[#004c4c] uppercase tracking-wider border-b border-[#d8dadd]/60 pb-1">
+                <h3 className="font-display text-lg font-bold text-[#004c4c] uppercase tracking-wider border-b border-[#e5e2db] pb-1">
                   Research Interests
                 </h3>
                 <p className="text-sm text-[#3f4948]">
@@ -383,7 +383,7 @@ export const CvModal: React.FC<CvModalProps> = ({ isOpen, onClose, onOpenAdminCv
 
               {/* Publications & Working Papers */}
               <section className="space-y-4">
-                <h3 className="font-display text-lg font-bold text-[#004c4c] uppercase tracking-wider border-b border-[#d8dadd]/60 pb-1">
+                <h3 className="font-display text-lg font-bold text-[#004c4c] uppercase tracking-wider border-b border-[#e5e2db] pb-1">
                   Publications & Working Papers
                 </h3>
                 <div className="space-y-3">
@@ -412,7 +412,7 @@ export const CvModal: React.FC<CvModalProps> = ({ isOpen, onClose, onOpenAdminCv
 
               {/* Research & Fellowship Experience */}
               <section className="space-y-4">
-                <h3 className="font-display text-lg font-bold text-[#004c4c] uppercase tracking-wider border-b border-[#d8dadd]/60 pb-1">
+                <h3 className="font-display text-lg font-bold text-[#004c4c] uppercase tracking-wider border-b border-[#e5e2db] pb-1">
                   Research & Fellowships
                 </h3>
                 <div className="space-y-4">
@@ -437,12 +437,12 @@ export const CvModal: React.FC<CvModalProps> = ({ isOpen, onClose, onOpenAdminCv
 
               {/* Awards and Honors */}
               <section className="space-y-3">
-                <h3 className="font-display text-lg font-bold text-[#004c4c] uppercase tracking-wider border-b border-[#d8dadd]/60 pb-1">
+                <h3 className="font-display text-lg font-bold text-[#004c4c] uppercase tracking-wider border-b border-[#e5e2db] pb-1">
                   Honors, Scholarships & Awards
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs">
                   {awards.map((award) => (
-                    <div key={award.id} className="p-3 rounded-lg bg-white/70 border border-slate-200/80">
+                    <div key={award.id} className="p-3 rounded-lg bg-[#FAF9F6] border border-[#e5e2db]">
                       <div className="flex justify-between items-start">
                         <span className="font-bold text-[#191c1e]">{award.title}</span>
                         <span className="text-teal-700 font-semibold">{award.tag}</span>
@@ -455,12 +455,12 @@ export const CvModal: React.FC<CvModalProps> = ({ isOpen, onClose, onOpenAdminCv
 
               {/* Quantitative Skills */}
               <section className="space-y-2">
-                <h3 className="font-display text-lg font-bold text-[#004c4c] uppercase tracking-wider border-b border-[#d8dadd]/60 pb-1">
+                <h3 className="font-display text-lg font-bold text-[#004c4c] uppercase tracking-wider border-b border-[#e5e2db] pb-1">
                   Software & Quantitative Toolkit
                 </h3>
                 <div className="flex flex-wrap gap-2 text-xs">
                   {personalInfo.quantitativeToolkit?.map((tool) => (
-                    <span key={tool.name} className="px-2.5 py-1 rounded bg-[#eceef1] text-[#004c4c] font-medium">
+                    <span key={tool.name} className="px-2.5 py-1 rounded bg-[#eeece5] text-[#004c4c] font-medium">
                       <strong>{tool.name}:</strong> {tool.desc}
                     </span>
                   ))}

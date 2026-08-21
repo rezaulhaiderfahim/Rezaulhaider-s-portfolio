@@ -3,4 +3,4 @@ User-agent: *
 Allow: /
 Disallow: /fahim1211
 
-Sitemap: https://[MY-ACTUAL-DOMAIN]/sitemap.xml
+Sitemap: https://rezaulhaider.vercel.app/sitemap.xml

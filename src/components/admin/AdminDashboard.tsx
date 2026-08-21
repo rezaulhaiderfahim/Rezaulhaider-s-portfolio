@@ -581,6 +581,13 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                     <span className="material-symbols-outlined text-sm">bar_chart</span>
                     <span>Edit Skills</span>
                   </button>
+                  <button
+                    onClick={() => onEditProfile('social')}
+                    className="px-3 py-1.5 rounded-xl bg-[#004c4c] text-white hover:bg-[#006666] font-semibold text-xs flex items-center gap-1.5 shadow cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-sm">share</span>
+                    <span>Academic Profiles</span>
+                  </button>
                 </div>
               </div>
 
@@ -742,6 +749,80 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
                       </p>
                     </div>
                   ))}
+                </div>
+              </div>
+
+              {/* Academic & Professional Profiles Manager */}
+              <div className="neumorphic-card p-6 space-y-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2">
+                    <span className="material-symbols-outlined text-[#004c4c] text-lg">share</span>
+                    <h4 className="font-headline text-base font-bold text-[#004c4c]">
+                      Academic & Professional Profiles (4)
+                    </h4>
+                  </div>
+                  <button
+                    onClick={() => onEditProfile('social')}
+                    className="px-3 py-1 rounded-full bg-teal-50 hover:bg-teal-100 text-[#004c4c] text-xs font-semibold flex items-center gap-1 border border-teal-200 cursor-pointer"
+                  >
+                    <span className="material-symbols-outlined text-xs">edit</span>
+                    <span>Edit Profile URLs</span>
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  {[
+                    {
+                      name: 'LinkedIn',
+                      icon: 'work',
+                      defaultUrl: 'https://linkedin.com/in/muhammad-rezaul-haider',
+                    },
+                    {
+                      name: 'Scholar',
+                      icon: 'school',
+                      defaultUrl: 'https://scholar.google.com/citations?user=rezaulhaider',
+                    },
+                    {
+                      name: 'ORCID',
+                      icon: 'fingerprint',
+                      defaultUrl: 'https://orcid.org/0009-0004-8192-3341',
+                    },
+                    {
+                      name: 'ResearchGate',
+                      icon: 'science',
+                      defaultUrl: 'https://researchgate.net/profile/Muhammad-Rezaul-Haider',
+                    },
+                  ].map((cp) => {
+                    const match = personalInfo.socialLinks?.find((s) => {
+                      const sName = (s.name || '').toLowerCase();
+                      const sUrl = (s.url || '').toLowerCase();
+                      return sName.includes(cp.name.toLowerCase()) || sUrl.includes(cp.name.toLowerCase());
+                    });
+                    const activeUrl = match?.url || cp.defaultUrl;
+                    return (
+                      <div key={cp.name} className="neumorphic-inset-box p-3.5 flex items-center justify-between gap-2">
+                        <div className="flex items-center gap-2.5 min-w-0">
+                          <div className="w-8 h-8 rounded-full bg-[#FAF9F6] flex items-center justify-center text-[#004c4c] border border-[#e5e2db] shrink-0">
+                            <span className="material-symbols-outlined text-base">{cp.icon}</span>
+                          </div>
+                          <div className="min-w-0">
+                            <span className="font-bold text-xs text-[#004c4c] block">{cp.name}</span>
+                            <span className="text-[11px] text-[#486363] block truncate">{activeUrl}</span>
+                          </div>
+                        </div>
+                        {activeUrl && (
+                          <a
+                            href={activeUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-xs text-[#004c4c] hover:text-[#006666] shrink-0 p-1"
+                          >
+                            <span className="material-symbols-outlined text-sm">open_in_new</span>
+                          </a>
+                        )}
+                      </div>
+                    );
+                  })}
                 </div>
               </div>
             </div>

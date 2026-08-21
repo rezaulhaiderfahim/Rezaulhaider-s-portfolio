@@ -21,9 +21,9 @@ export const PublicationModal: React.FC<PublicationModalProps> = ({ publication,
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-[#f7f9fc] rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden border border-white/80">
+      <div className="bg-[#FAF9F6] rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden border border-[#e5e2db]">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#d8dadd] bg-[#f7f9fc]">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[#e5e2db] bg-[#FAF9F6]">
           <div className="flex items-center space-x-3">
             <span className="material-symbols-outlined text-[#004c4c]">
               {publication.status === 'published' ? 'menu_book' : 'hourglass_empty'}
@@ -34,7 +34,7 @@ export const PublicationModal: React.FC<PublicationModalProps> = ({ publication,
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-full text-[#486363] hover:text-[#191c1e] hover:bg-slate-200/60 transition-colors cursor-pointer"
+            className="p-1.5 rounded-full text-[#486363] hover:text-[#191c1e] hover:bg-[#eeece5] transition-colors cursor-pointer"
           >
             <span className="material-symbols-outlined text-xl">close</span>
           </button>
@@ -63,7 +63,7 @@ export const PublicationModal: React.FC<PublicationModalProps> = ({ publication,
           </div>
 
           {/* Abstract */}
-          <div className="neumorphic-inset-box p-5 space-y-2 bg-[#f7f9fc]">
+          <div className="neumorphic-inset-box p-5 space-y-2 bg-[#F7F6F2]">
             <h4 className="font-semibold text-xs text-[#004c4c] uppercase tracking-wider">
               Abstract
             </h4>

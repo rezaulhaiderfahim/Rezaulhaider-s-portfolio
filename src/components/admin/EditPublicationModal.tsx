@@ -124,9 +124,9 @@ export const EditPublicationModal: React.FC<EditPublicationModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-[#f7f9fc] rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden border border-white/80">
+      <div className="bg-[#FAF9F6] rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden border border-[#e5e2db]">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-[#d8dadd] bg-[#f7f9fc]">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[#e5e2db] bg-[#FAF9F6]">
           <div className="flex items-center space-x-3">
             <span className="material-symbols-outlined text-[#004c4c]">
               {publication ? 'edit_document' : 'post_add'}
@@ -137,7 +137,7 @@ export const EditPublicationModal: React.FC<EditPublicationModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-full text-[#486363] hover:text-[#191c1e] hover:bg-slate-200/60 transition-colors cursor-pointer"
+            className="p-1.5 rounded-full text-[#486363] hover:text-[#191c1e] hover:bg-[#eeece5] transition-colors cursor-pointer"
           >
             <span className="material-symbols-outlined text-xl">close</span>
           </button>

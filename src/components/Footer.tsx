@@ -29,7 +29,7 @@ export const Footer: React.FC<FooterProps> = ({
   };
 
   return (
-    <footer className="w-full mt-24 md:mt-32 bg-[#f7f9fc] border-t border-[#d8dadd]/30 py-16 md:py-20">
+    <footer className="w-full mt-24 md:mt-32 bg-[#F7F6F2] border-t border-[#e5e2db]/80 py-16 md:py-20">
       <div className="flex flex-col items-center justify-center max-w-[1140px] mx-auto px-6 md:px-12 text-center">
         {/* Name */}
         <button
@@ -56,11 +56,22 @@ export const Footer: React.FC<FooterProps> = ({
           ))}
         </div>
 
-        {/* Copyright */}
+        {/* Copyright & Admin Link */}
         <div className="space-y-2 flex flex-col items-center">
           <p className="font-body text-sm md:text-base text-[#486363] opacity-75">
             © {new Date().getFullYear()} {personalInfo.name}. All rights reserved.
           </p>
+
+          <div className="pt-2 flex items-center gap-3">
+            <button
+              onClick={() => handleTabClick('admin')}
+              title="Admin Portal (/fahim1211)"
+              className="inline-flex items-center gap-1.5 text-xs text-[#486363]/60 hover:text-[#004c4c] transition-colors py-1 px-2.5 rounded-md hover:bg-[#eeece5]/70 cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-sm">lock</span>
+              <span>Admin Portal</span>
+            </button>
+          </div>
         </div>
       </div>
     </footer>

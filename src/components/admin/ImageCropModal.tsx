@@ -166,9 +166,9 @@ export const ImageCropModal: React.FC<ImageCropModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
-      <div className="bg-[#f7f9fc] rounded-3xl max-w-2xl w-full shadow-2xl overflow-hidden flex flex-col max-h-[95vh] border border-gray-200">
+      <div className="bg-[#FAF9F6] rounded-3xl max-w-2xl w-full shadow-2xl overflow-hidden flex flex-col max-h-[95vh] border border-[#e5e2db]">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-200 bg-white">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-[#e5e2db] bg-[#FAF9F6]">
           <div className="flex items-center gap-2">
             <span className="material-symbols-outlined text-[#004c4c] text-2xl">crop</span>
             <div>
@@ -182,7 +182,7 @@ export const ImageCropModal: React.FC<ImageCropModalProps> = ({
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 rounded-full text-gray-400 hover:text-gray-700 hover:bg-gray-100 cursor-pointer"
+            className="p-1.5 rounded-full text-[#486363] hover:text-[#191c1e] hover:bg-[#eeece5] cursor-pointer"
           >
             <span className="material-symbols-outlined text-xl">close</span>
           </button>

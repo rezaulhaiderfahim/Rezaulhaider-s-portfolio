@@ -12,9 +12,14 @@ export const personalInfo = {
   education: {
     degree: 'Bachelor of Economics (International Program for Islamic Economics and Finance)',
     institution: 'Universitas Muhammadiyah Yogyakarta (UMY)',
+    location: 'Faculty of Economics and Business · Yogyakarta, Indonesia',
     period: '2022 - 2026',
     gpa: '3.94 / 4.00 (Summa Cum Laude Track)',
-    focus: 'Applied Panel Econometrics, Labor Economics & Quantitative Methods'
+    focus: 'Applied Panel Econometrics, Labor Economics & Quantitative Methods',
+    thesis: 'Threshold Dynamics and Empirical Modeling of Female Labor Force Participation in South & Southeast Asia',
+    honors: 'Dean\'s Honor List, Academic Excellence Distinction Award',
+    coursework: 'Advanced Econometrics, Macroeconomic Theory, Mathematical Economics, Applied Panel Data Methods, Time Series Analysis',
+    description: 'Undergraduate study focused on quantitative econometrics, empirical labor dynamics, and public policy.'
   },
   researchInterests: [
     'Applied Panel Econometrics',
@@ -399,7 +404,7 @@ What actually creates a response is demonstrating that you understand *one speci
 
 ### 2. The importance of quiet preparation
 
-Before writing a single cold email or statement of purpose, spending two weeks organizing your CV, personal GitHub/research repository, and writing sample pays compound dividends. When a professor clicks your link, they make an initial judgment within thirty seconds.
+Before writing a single cold email or statement of purpose, spending two weeks organizing your CV, research portfolio, and writing sample pays compound dividends. When a professor clicks your link, they make an initial judgment within thirty seconds.
 
 ### 3. Rejection is standard, not fatal
 
