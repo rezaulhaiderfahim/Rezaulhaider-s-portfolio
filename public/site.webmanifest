@@ -1,0 +1,17 @@
+{
+  "name": "Muhammad Rezaul Haider - Academic & Economics Research Portfolio",
+  "short_name": "M. R. Haider",
+  "description": "Academic and economics research portfolio of Muhammad Rezaul Haider – applied econometrics, labor, and gender economics.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7f9fc",
+  "theme_color": "#004c4c",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

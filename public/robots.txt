@@ -1,0 +1,6 @@
+# https://www.robotstxt.org/robotstxt.html
+User-agent: *
+Allow: /
+Disallow: /fahim1211
+
+Sitemap: https://[MY-ACTUAL-DOMAIN]/sitemap.xml
