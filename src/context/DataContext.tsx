@@ -67,14 +67,58 @@ interface DataContextType {
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
+// Local caching helpers to prevent initial render flash/hydration shift
+const CACHE_KEYS = {
+  PERSONAL_INFO: 'mrh_portfolio_personal_info_v1',
+  PUBLICATIONS: 'mrh_portfolio_publications_v1',
+  TIMELINE: 'mrh_portfolio_timeline_v1',
+  AWARDS: 'mrh_portfolio_awards_v1',
+  EXPERIENCE: 'mrh_portfolio_experience_v1',
+  NOTES: 'mrh_portfolio_notes_v1',
+};
+
+const getCachedData = <T,>(key: string, fallback: T): T => {
+  if (typeof window === 'undefined') return fallback;
+  try {
+    const item = localStorage.getItem(key);
+    if (item) {
+      return JSON.parse(item);
+    }
+  } catch (e) {
+    // Non-blocking fallback
+  }
+  return fallback;
+};
+
+const setCachedData = <T,>(key: string, data: T) => {
+  if (typeof window === 'undefined') return;
+  try {
+    localStorage.setItem(key, JSON.stringify(data));
+  } catch (e) {
+    // Non-blocking quota catch
+  }
+};
+
 export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const { isAdmin } = useAuth();
-  const [personalInfo, setPersonalInfo] = useState<PersonalInfo>(initialPersonalInfo);
-  const [publications, setPublications] = useState<Publication[]>(initialPublications);
-  const [researchTimeline, setResearchTimeline] = useState<ResearchExperience[]>(initialResearchTimeline);
-  const [awards, setAwards] = useState<AwardItem[]>(initialAwardsData);
-  const [experience, setExperience] = useState<ExperienceItem[]>(initialExperienceData);
-  const [notes, setNotes] = useState<NotePost[]>(initialNotesData);
+  const [personalInfo, setPersonalInfo] = useState<PersonalInfo>(() =>
+    getCachedData(CACHE_KEYS.PERSONAL_INFO, initialPersonalInfo)
+  );
+  const [publications, setPublications] = useState<Publication[]>(() =>
+    getCachedData(CACHE_KEYS.PUBLICATIONS, initialPublications)
+  );
+  const [researchTimeline, setResearchTimeline] = useState<ResearchExperience[]>(() =>
+    getCachedData(CACHE_KEYS.TIMELINE, initialResearchTimeline)
+  );
+  const [awards, setAwards] = useState<AwardItem[]>(() =>
+    getCachedData(CACHE_KEYS.AWARDS, initialAwardsData)
+  );
+  const [experience, setExperience] = useState<ExperienceItem[]>(() =>
+    getCachedData(CACHE_KEYS.EXPERIENCE, initialExperienceData)
+  );
+  const [notes, setNotes] = useState<NotePost[]>(() =>
+    getCachedData(CACHE_KEYS.NOTES, initialNotesData)
+  );
   const [messages, setMessages] = useState<ContactMessage[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [isSeeded, setIsSeeded] = useState<boolean>(true);
@@ -83,7 +127,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   useEffect(() => {
     const unsub = onSnapshot(doc(db, 'portfolio_data', 'main'), (docSnap) => {
       if (docSnap.exists()) {
-        setPersonalInfo(docSnap.data() as PersonalInfo);
+        const data = docSnap.data() as PersonalInfo;
+        setPersonalInfo(data);
+        setCachedData(CACHE_KEYS.PERSONAL_INFO, data);
       }
     }, (err) => {
       console.warn('Firestore portfolio_data listener notice:', err.message);
@@ -99,9 +145,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         snapshot.forEach((d) => {
           list.push({ id: d.id, ...d.data() } as Publication);
         });
-        // Sort by order or year
         list.sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
         setPublications(list);
+        setCachedData(CACHE_KEYS.PUBLICATIONS, list);
       }
     }, (err) => {
       console.warn('Firestore publications listener notice:', err.message);
@@ -119,6 +165,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
         list.sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
         setResearchTimeline(list);
+        setCachedData(CACHE_KEYS.TIMELINE, list);
       }
     }, (err) => {
       console.warn('Firestore research_timeline listener notice:', err.message);
@@ -136,6 +183,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
         list.sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
         setAwards(list);
+        setCachedData(CACHE_KEYS.AWARDS, list);
       }
     }, (err) => {
       console.warn('Firestore awards listener notice:', err.message);
@@ -153,6 +201,7 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         });
         list.sort((a, b) => (a.order ?? 999) - (b.order ?? 999));
         setExperience(list);
+        setCachedData(CACHE_KEYS.EXPERIENCE, list);
       }
     }, (err) => {
       console.warn('Firestore experience listener notice:', err.message);
@@ -168,13 +217,13 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
         snapshot.forEach((d) => {
           list.push({ id: d.id, ...d.data() } as NotePost);
         });
-        // Sort newest first by publishedAt / date
         list.sort((a, b) => {
           const dateA = a.publishedAt || a.date || '';
           const dateB = b.publishedAt || b.date || '';
           return dateB.localeCompare(dateA);
         });
         setNotes(list);
+        setCachedData(CACHE_KEYS.NOTES, list);
       }
     }, (err) => {
       console.warn('Firestore notes listener notice:', err.message);
@@ -282,8 +331,9 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // CRUD Operations
   const updatePersonalInfo = async (data: Partial<PersonalInfo>) => {
     const merged = { ...personalInfo, ...data, updatedAt: new Date().toISOString() };
-    await setDoc(doc(db, 'portfolio_data', 'main'), merged, { merge: true });
     setPersonalInfo(merged);
+    setCachedData(CACHE_KEYS.PERSONAL_INFO, merged);
+    await setDoc(doc(db, 'portfolio_data', 'main'), merged, { merge: true });
   };
 
   const addPublication = async (pub: Omit<Publication, 'id'>) => {

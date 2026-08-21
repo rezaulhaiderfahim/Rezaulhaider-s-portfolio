@@ -3,12 +3,12 @@ import { Publication, ResearchExperience, AwardItem, ExperienceItem, NotePost } 
 export const personalInfo = {
   name: 'Muhammad Rezaul Haider',
   shortName: 'M. R. Haider',
-  title: 'Final-Year Economics Student · Applied Econometrics, Labor & Gender Economics',
+  title: 'Economics Graduate & Researcher · Applied Econometrics, Labor & Gender Economics',
   affiliation: 'Universitas Muhammadiyah Yogyakarta (IPIEF), Indonesia',
   email: 'rezaulhaiderfahim@gmail.com',
   location: 'Yogyakarta, Indonesia',
   avatarUrl: '',
-  bio: 'I am a dedicated student of economics with a deep focus on applied panel econometrics and labor economics. My research primarily investigates gender economics, specifically exploring the complex dynamics of female labor force participation and fertility trends across developing nations in South and Southeast Asia. My approach blends rigorous quantitative analysis with a nuanced understanding of socio-economic contexts. Currently, I have three manuscripts under review at peer-reviewed academic journals, contributing novel insights to the discourse on structural economic transformations and gender equity in emerging markets.',
+  bio: 'I am a dedicated economics researcher with a deep focus on applied panel econometrics and labor economics. My research primarily investigates gender economics, specifically exploring the complex dynamics of female labor force participation and fertility trends across developing nations in South and Southeast Asia. My approach blends rigorous quantitative analysis with a nuanced understanding of socio-economic contexts. Currently, I have three manuscripts under review at peer-reviewed academic journals, contributing novel insights to the discourse on structural economic transformations and gender equity in emerging markets.',
   education: {
     degree: 'Bachelor of Economics (International Program for Islamic Economics and Finance)',
     institution: 'Universitas Muhammadiyah Yogyakarta (UMY)',
