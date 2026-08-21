@@ -52,12 +52,6 @@ export const HomeScreen: React.FC<HomeScreenProps> = ({
               )}
             </div>
           </div>
-
-          {/* Subtle status indicator */}
-          <div className="absolute bottom-2 right-4 neumorphic-inset px-2.5 py-1 rounded-full text-[11px] font-semibold text-[#004c4c] flex items-center gap-1.5 bg-[#f7f9fc]">
-            <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-            <span>Available</span>
-          </div>
         </div>
 
         {/* Hero Bio & Info */}
