@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { TabType } from '../types';
 import { useData } from '../context/DataContext';
+import { useAuth } from '../context/AuthContext';
 
 interface NavbarProps {
   activeTab: TabType;
@@ -12,6 +13,7 @@ export const Navbar: React.FC<NavbarProps> = ({
   setActiveTab,
 }) => {
   const { personalInfo } = useData();
+  const { isAdmin } = useAuth();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const navItems: { id: TabType; label: string }[] = [
@@ -57,10 +59,34 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
             );
           })}
+
+          {isAdmin && (
+            <button
+              onClick={() => handleTabClick('admin')}
+              className={`flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-bold transition-all cursor-pointer ${
+                activeTab === 'admin'
+                  ? 'bg-[#004c4c] text-white shadow-md'
+                  : 'bg-teal-50 text-[#004c4c] border border-teal-300 hover:bg-teal-100'
+              }`}
+            >
+              <span className="material-symbols-outlined text-sm">admin_panel_settings</span>
+              <span>Admin</span>
+            </button>
+          )}
         </div>
 
         {/* Mobile Menu Toggle Button */}
         <div className="flex items-center gap-2 md:hidden">
+          {isAdmin && (
+            <button
+              onClick={() => handleTabClick('admin')}
+              aria-label="Admin panel"
+              className="text-[#004c4c] bg-teal-50 p-2 rounded-full border border-teal-200 cursor-pointer"
+            >
+              <span className="material-symbols-outlined text-lg">admin_panel_settings</span>
+            </button>
+          )}
+
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             aria-label="Toggle navigation menu"
@@ -95,6 +121,22 @@ export const Navbar: React.FC<NavbarProps> = ({
               </button>
             );
           })}
+
+          {isAdmin && (
+            <button
+              onClick={() => handleTabClick('admin')}
+              className={`w-full text-left px-4 py-3 rounded-xl flex items-center justify-between font-bold transition-all ${
+                activeTab === 'admin'
+                  ? 'bg-[#004c4c] text-white'
+                  : 'bg-teal-50 text-[#004c4c] border border-teal-200'
+              }`}
+            >
+              <div className="flex items-center gap-2">
+                <span className="material-symbols-outlined text-base">admin_panel_settings</span>
+                <span>Admin Panel (/fahim1211)</span>
+              </div>
+            </button>
+          )}
         </div>
       )}
     </nav>

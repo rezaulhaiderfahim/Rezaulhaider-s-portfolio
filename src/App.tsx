@@ -108,27 +108,47 @@ export const resolveCurrentLocationToTab = (): TabType => {
   const search = window.location.search || '';
   const hash = window.location.hash || '';
 
-  // 1. Check Query Parameters (?fahim1211, ?tab=fahim1211, etc.)
+  // 1. Check Query Parameters (?tab=fahim1211, ?page=admin, ?fahim1211, ?admin, etc.)
   if (search) {
     try {
       const searchParams = new URLSearchParams(search);
-      // ONLY the secret key resolves to admin
-      if (searchParams.has('fahim1211') || searchParams.get('tab') === 'fahim1211') {
-        return 'admin';
+      const directKeys = ['fahim1211', 'admin', 'research', 'awards', 'notes', 'contact'];
+      for (const key of directKeys) {
+        if (searchParams.has(key)) {
+          return key === 'fahim1211' || key === 'admin' ? 'admin' : (key as TabType);
+        }
       }
-      if (searchParams.has('research') || searchParams.get('tab') === 'research') return 'research';
-      if (searchParams.has('awards') || searchParams.get('tab') === 'awards') return 'awards';
-      if (searchParams.has('contact') || searchParams.get('tab') === 'contact') return 'contact';
-      if (searchParams.has('notes') || searchParams.get('tab') === 'notes') return 'notes';
+
+      const paramValue =
+        searchParams.get('tab') ||
+        searchParams.get('page') ||
+        searchParams.get('p') ||
+        searchParams.get('section') ||
+        searchParams.get('view') ||
+        searchParams.get('path') ||
+        searchParams.get('route') ||
+        searchParams.get('screen');
+
+      if (paramValue) {
+        const val = paramValue.toLowerCase().trim().replace(/^\/+|\/+$/g, '');
+        if (val === 'fahim1211' || val === 'admin' || val === 'login' || val === 'portal' || val === 'dashboard' || val === 'cms') {
+          return 'admin';
+        }
+        if (val === 'research' || val === 'publications' || val === 'papers') return 'research';
+        if (val === 'awards' || val === 'honors' || val === 'fellowships') return 'awards';
+        if (val === 'contact' || val === 'inquiry' || val === 'message') return 'contact';
+        if (val === 'notes' || val === 'blog' || val === 'articles') return 'notes';
+        if (val === 'home' || val === '') return 'home';
+      }
     } catch {
       // Ignore query param parsing errors
     }
   }
 
-  // 2. Check Hash Fragment (#/fahim1211, #fahim1211)
+  // 2. Check Hash Fragment (#/fahim1211, #fahim1211, #/admin, #admin, etc.)
   if (hash) {
     const cleanHash = hash.replace(/^[#/]+/, '').split('?')[0].toLowerCase().trim();
-    if (cleanHash === 'fahim1211') {
+    if (cleanHash === 'fahim1211' || cleanHash === 'admin' || cleanHash === 'login' || cleanHash === 'portal' || cleanHash === 'dashboard') {
       return 'admin';
     }
     if (cleanHash === 'research' || cleanHash === 'publications' || cleanHash === 'papers') return 'research';
@@ -138,35 +158,28 @@ export const resolveCurrentLocationToTab = (): TabType => {
     if (cleanHash === 'home') return 'home';
   }
 
-  // 3. Check Pathname (/fahim1211, /research, /awards, etc.)
+  // 3. Check Pathname (/fahim1211, /admin, /research, /awards, etc.)
   if (pathname && pathname !== '/') {
     const rawClean = pathname.split('?')[0].split('#')[0].toLowerCase().trim();
     const segments = rawClean.split('/').filter(Boolean);
 
-    // Exact secret route match
-    if (segments.includes('fahim1211') || rawClean === '/fahim1211' || rawClean.endsWith('/fahim1211')) {
-      return 'admin';
-    }
-
-    // Public routes
-    if (segments.includes('research') || rawClean.includes('research')) return 'research';
-    if (segments.includes('awards') || rawClean.includes('awards')) return 'awards';
-    if (segments.includes('contact') || rawClean.includes('contact')) return 'contact';
-    if (segments.includes('notes') || rawClean.includes('notes')) return 'notes';
-
-    // Unauthorized/Generic paths like /admin, /portal, /login, /dashboard redirect to home cleanly
-    if (
-      segments.includes('admin') ||
-      segments.includes('login') ||
-      segments.includes('portal') ||
-      segments.includes('dashboard') ||
-      segments.includes('cms')
-    ) {
-      if (typeof window !== 'undefined') {
-        window.history.replaceState(null, '', '/');
+    // Exact single segment matches
+    for (const seg of segments) {
+      if (seg === 'fahim1211' || seg === 'admin' || seg === 'login' || seg === 'portal' || seg === 'dashboard' || seg === 'cms') {
+        return 'admin';
       }
-      return 'home';
+      if (seg === 'research' || seg === 'publications' || seg === 'papers') return 'research';
+      if (seg === 'awards' || seg === 'honors' || seg === 'fellowships') return 'awards';
+      if (seg === 'contact' || seg === 'inquiry' || seg === 'message') return 'contact';
+      if (seg === 'notes' || seg === 'blog' || seg === 'articles') return 'notes';
     }
+
+    // Substring fallback check (e.g. if embedded in preview proxy URL)
+    if (rawClean.includes('fahim1211') || rawClean.endsWith('/admin')) return 'admin';
+    if (rawClean.includes('research')) return 'research';
+    if (rawClean.includes('awards')) return 'awards';
+    if (rawClean.includes('contact')) return 'contact';
+    if (rawClean.includes('notes')) return 'notes';
   }
 
   return 'home';

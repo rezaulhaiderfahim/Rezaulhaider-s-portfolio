@@ -406,7 +406,7 @@ export const AdminPageScreen: React.FC<AdminPageScreenProps> = ({
                 Admin Management Center
               </h1>
               <span className="px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-teal-100 text-[#004c4c] border border-teal-300">
-                Authorized Session
+                URL: /fahim1211
               </span>
             </div>
             <p className="text-xs text-[#486363] mt-0.5">
