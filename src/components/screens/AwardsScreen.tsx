@@ -7,7 +7,6 @@ export const AwardsScreen: React.FC = () => {
   const [selectedAward, setSelectedAward] = useState<AwardItem | null>(null);
 
   const conferences = (awards || []).filter((a) => a.category === 'conference');
-  const scholarships = (awards || []).filter((a) => a.category === 'award');
   const courses = (awards || []).filter((a) => a.category === 'course');
 
   return (
@@ -62,46 +61,7 @@ export const AwardsScreen: React.FC = () => {
         </div>
       </section>
 
-      {/* Section 2: Awards & Scholarships */}
-      <section className="space-y-8">
-        <h2 className="font-headline text-2xl md:text-3xl font-semibold text-[#004c4c] flex items-center space-x-4">
-          <span className="material-symbols-outlined text-[#486363] text-2xl md:text-3xl">
-            school
-          </span>
-          <span>Awards & Scholarships</span>
-        </h2>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 md:gap-8">
-          {scholarships.map((award) => (
-            <div
-              key={award.id}
-              onClick={() => setSelectedAward(award)}
-              className="neumorphic-card p-6 md:p-8 flex items-start space-x-5 md:space-x-6 hover:shadow-[inset_-4px_-4px_8px_rgba(255,255,255,0.9),inset_4px_4px_8px_#dedbd2] transition-all duration-300 cursor-pointer group relative"
-            >
-              <div className="neumorphic-inset min-w-[56px] md:min-w-[64px] h-14 md:h-16 flex items-center justify-center text-[#004c4c] rounded-xl shrink-0">
-                <span className="material-symbols-outlined text-2xl md:text-3xl">
-                  {award.icon || 'military_tech'}
-                </span>
-              </div>
-              <div className="space-y-1.5 flex-grow">
-                <h3 className="font-headline text-lg md:text-xl font-semibold text-[#191c1e] group-hover:text-[#004c4c] transition-colors leading-snug">
-                  {award.title}
-                </h3>
-                <p className="font-body text-xs md:text-sm text-[#3f4948] leading-relaxed">
-                  {award.description}
-                </p>
-                <div className="pt-2">
-                  <span className="neumorphic-inset px-3 py-1 font-label-caps text-xs font-semibold text-[#486363] inline-block">
-                    {award.tag}
-                  </span>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </section>
-
-      {/* Section 3: Course & Certification */}
+      {/* Section 2: Course & Certification */}
       <section className="space-y-8">
         <h2 className="font-headline text-2xl md:text-3xl font-semibold text-[#004c4c] flex items-center space-x-4">
           <span className="material-symbols-outlined text-[#486363] text-2xl md:text-3xl">

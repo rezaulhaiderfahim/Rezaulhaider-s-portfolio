@@ -1121,66 +1121,11 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
                   </div>
                 </div>
 
-                {/* Subsections: Academic Standing & Specialization */}
-                <div className="neumorphic-card p-5 md:p-6 space-y-5 border border-teal-100">
-                  <div className="flex items-center gap-2 border-b border-[#e5e2db] pb-3">
-                    <span className="w-8 h-8 rounded-full bg-teal-50 text-[#004c4c] flex items-center justify-center font-bold text-xs border border-teal-200">
-                      2
-                    </span>
-                    <div>
-                      <h4 className="font-headline text-sm font-bold text-[#004c4c]">
-                        Academic Standing & Specialization
-                      </h4>
-                      <p className="text-[11px] text-[#486363]">Grades, class ranking, and key economic focus areas</p>
-                    </div>
-                  </div>
-
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-semibold text-[#486363] mb-1 flex items-center gap-1">
-                        <span className="material-symbols-outlined text-sm text-[#004c4c]">workspace_premium</span>
-                        <span>Academic Standing / GPA / Class Rank</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.education?.gpa || ''}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            education: { ...formData.education, gpa: e.target.value },
-                          })
-                        }
-                        placeholder="3.94 / 4.00 (Summa Cum Laude Track)"
-                        className="w-full px-3.5 py-2.5 rounded-xl text-xs md:text-sm neumorphic-input text-[#191c1e] bg-[#FAF9F6] border border-[#e5e2db]"
-                      />
-                    </div>
-
-                    <div>
-                      <label className="block text-xs font-semibold text-[#486363] mb-1 flex items-center gap-1">
-                        <span className="material-symbols-outlined text-sm text-[#004c4c]">psychology</span>
-                        <span>Specialization / Concentration</span>
-                      </label>
-                      <input
-                        type="text"
-                        value={formData.education?.focus || ''}
-                        onChange={(e) =>
-                          setFormData({
-                            ...formData,
-                            education: { ...formData.education, focus: e.target.value },
-                          })
-                        }
-                        placeholder="Applied Panel Econometrics, Labor Economics & Quantitative Methods"
-                        className="w-full px-3.5 py-2.5 rounded-xl text-xs md:text-sm neumorphic-input text-[#191c1e] bg-[#FAF9F6] border border-[#e5e2db]"
-                      />
-                    </div>
-                  </div>
-                </div>
-
                 {/* Subsections: Thesis, Honors & Coursework */}
                 <div className="neumorphic-card p-5 md:p-6 space-y-5 border border-teal-100">
                   <div className="flex items-center gap-2 border-b border-[#e5e2db] pb-3">
                     <span className="w-8 h-8 rounded-full bg-teal-50 text-[#004c4c] flex items-center justify-center font-bold text-xs border border-teal-200">
-                      3
+                      2
                     </span>
                     <div>
                       <h4 className="font-headline text-sm font-bold text-[#004c4c]">

@@ -735,60 +735,11 @@ export const AdminPageScreen: React.FC<AdminPageScreenProps> = ({
                 </div>
               </div>
 
-              {/* Subsection 2: Standing & Specialization */}
+              {/* Subsection 2: Thesis, Honors & Coursework */}
               <div className="neumorphic-card p-6 space-y-4">
                 <div className="flex items-center gap-2 border-b border-[#e5e2db] pb-3">
                   <div className="w-7 h-7 rounded-full bg-[#004c4c] text-white flex items-center justify-center font-bold text-xs">
                     2
-                  </div>
-                  <div>
-                    <h4 className="font-headline text-sm font-bold text-[#004c4c]">
-                      Academic Standing & Specialization
-                    </h4>
-                    <p className="text-[11px] text-[#486363]">Grades, honors track, and field of focus</p>
-                  </div>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-xs font-bold text-[#004c4c] mb-1 flex items-center gap-1">
-                      <span className="material-symbols-outlined text-sm">workspace_premium</span>
-                      <span>Academic Standing / GPA</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={educationForm.gpa || ''}
-                      onChange={(e) =>
-                        setEducationForm({ ...educationForm, gpa: e.target.value })
-                      }
-                      placeholder="3.94 / 4.00 (Summa Cum Laude Track)"
-                      className="w-full px-3.5 py-2.5 rounded-xl text-xs md:text-sm neumorphic-input text-[#191c1e] bg-[#FAF9F6] border border-[#e5e2db]"
-                    />
-                  </div>
-
-                  <div>
-                    <label className="block text-xs font-bold text-[#004c4c] mb-1 flex items-center gap-1">
-                      <span className="material-symbols-outlined text-sm">psychology</span>
-                      <span>Specialization / Concentration</span>
-                    </label>
-                    <input
-                      type="text"
-                      value={educationForm.focus || ''}
-                      onChange={(e) =>
-                        setEducationForm({ ...educationForm, focus: e.target.value })
-                      }
-                      placeholder="Applied Panel Econometrics, Labor Economics & Quantitative Methods"
-                      className="w-full px-3.5 py-2.5 rounded-xl text-xs md:text-sm neumorphic-input text-[#191c1e] bg-[#FAF9F6] border border-[#e5e2db]"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Subsection 3: Thesis, Honors & Coursework */}
-              <div className="neumorphic-card p-6 space-y-4">
-                <div className="flex items-center gap-2 border-b border-[#e5e2db] pb-3">
-                  <div className="w-7 h-7 rounded-full bg-[#004c4c] text-white flex items-center justify-center font-bold text-xs">
-                    3
                   </div>
                   <div>
                     <h4 className="font-headline text-sm font-bold text-[#004c4c]">
