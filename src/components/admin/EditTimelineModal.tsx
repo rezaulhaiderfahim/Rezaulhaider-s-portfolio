@@ -52,12 +52,12 @@ export const EditTimelineModal: React.FC<EditTimelineModalProps> = ({ item, isOp
         .filter((t) => t.length > 0);
 
       const timelineData: Omit<ResearchExperience, 'id'> = {
-        period,
-        title,
-        supervisorOrRole,
-        institution: institution || undefined,
-        description: description || undefined,
-        icon,
+        period: period.trim(),
+        title: title.trim(),
+        supervisorOrRole: supervisorOrRole.trim(),
+        institution: institution.trim() || '',
+        description: description.trim() || '',
+        icon: icon || 'work',
         tags,
       };
 

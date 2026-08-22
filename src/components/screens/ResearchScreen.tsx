@@ -138,9 +138,17 @@ export const ResearchScreen: React.FC<ResearchScreenProps> = ({
                   className="neumorphic-card p-6 md:p-7 space-y-3 cursor-pointer hover:shadow-[inset_-4px_-4px_8px_rgba(255,255,255,0.9),inset_4px_4px_8px_#dedbd2] transition-all duration-300 group relative"
                 >
                   <div className="flex justify-between items-start pr-4">
-                    <span className="neumorphic-inset px-3 py-1 font-label-caps text-xs font-semibold text-[#006666]">
-                      {pub.status === 'under_review' ? 'Under Review' : 'Working Paper'}
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="neumorphic-inset px-3 py-1 font-label-caps text-xs font-semibold text-[#006666]">
+                        {pub.status === 'under_review' ? 'Under Review' : 'Working Paper'}
+                      </span>
+                      {pub.pdfUrl && (
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-teal-100/80 text-[#004c4c] flex items-center gap-0.5">
+                          <span className="material-symbols-outlined text-xs">picture_as_pdf</span>
+                          PDF
+                        </span>
+                      )}
+                    </div>
                     <span className="font-label-caps text-xs font-semibold text-[#486363]">
                       {pub.year}
                     </span>
@@ -184,9 +192,17 @@ export const ResearchScreen: React.FC<ResearchScreenProps> = ({
                   className="neumorphic-card p-6 md:p-7 space-y-4 transition-all duration-300 relative"
                 >
                   <div className="flex justify-between items-start pr-4">
-                    <span className="neumorphic-inset px-3 py-1 font-label-caps text-xs font-semibold text-[#004c4c]">
-                      Published
-                    </span>
+                    <div className="flex items-center gap-2">
+                      <span className="neumorphic-inset px-3 py-1 font-label-caps text-xs font-semibold text-[#004c4c]">
+                        Published
+                      </span>
+                      {pub.pdfUrl && (
+                        <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-teal-100/80 text-[#004c4c] flex items-center gap-0.5">
+                          <span className="material-symbols-outlined text-xs">picture_as_pdf</span>
+                          PDF
+                        </span>
+                      )}
+                    </div>
                     <span className="font-label-caps text-xs font-semibold text-[#486363]">
                       {pub.year}
                     </span>

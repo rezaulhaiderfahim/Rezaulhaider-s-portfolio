@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { useData } from '../../context/DataContext';
 import { Publication } from '../../types';
 
@@ -26,15 +26,20 @@ export const EditPublicationModal: React.FC<EditPublicationModalProps> = ({
   const [dataset, setDataset] = useState('');
   const [tagsInput, setTagsInput] = useState('');
   const [doi, setDoi] = useState('');
+  const [pdfUrl, setPdfUrl] = useState('');
+  const [pdfFileName, setPdfFileName] = useState('');
   const [findingsInput, setFindingsInput] = useState('');
   const [bibtex, setBibtex] = useState('');
   const [saving, setSaving] = useState(false);
+  const [formError, setFormError] = useState<string | null>(null);
+
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
     if (publication) {
       setTitle(publication.title || '');
-      setAuthors(publication.authors || '');
-      setYear(publication.year || '');
+      setAuthors(publication.authors || 'Haider, M.R.');
+      setYear(publication.year || '2026');
       setStatus(publication.status || 'under_review');
       setJournalOrVenue(publication.journalOrVenue || '');
       setDescription(publication.description || '');
@@ -43,8 +48,11 @@ export const EditPublicationModal: React.FC<EditPublicationModalProps> = ({
       setDataset(publication.dataset || '');
       setTagsInput(publication.tags ? publication.tags.join(', ') : '');
       setDoi(publication.doi || '');
+      setPdfUrl(publication.pdfUrl || '');
+      setPdfFileName(publication.pdfUrl ? 'Paper document attached' : '');
       setFindingsInput(publication.keyFindings ? publication.keyFindings.join('\n') : '');
       setBibtex(publication.bibtex || '');
+      setFormError(null);
     } else {
       setTitle('');
       setAuthors('Haider, M.R.');
@@ -55,17 +63,51 @@ export const EditPublicationModal: React.FC<EditPublicationModalProps> = ({
       setAbstract('');
       setMethodology('');
       setDataset('');
-      setTagsInput('Applied Econometrics, Panel Data');
+      setTagsInput('Applied Econometrics, Panel Data, Labor Economics');
       setDoi('');
+      setPdfUrl('');
+      setPdfFileName('');
       setFindingsInput('');
       setBibtex('');
+      setFormError(null);
     }
   }, [publication, isOpen]);
 
   if (!isOpen) return null;
 
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Check size (max 10MB for client base64 storage)
+    if (file.size > 10 * 1024 * 1024) {
+      setFormError('File size exceeds 10MB limit. Please upload a smaller PDF or provide an external URL.');
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = reader.result as string;
+      setPdfUrl(result);
+      setPdfFileName(file.name);
+      setFormError(null);
+    };
+    reader.onerror = () => {
+      setFormError('Failed to read uploaded file.');
+    };
+    reader.readAsDataURL(file);
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setFormError(null);
+
+    const cleanTitle = title.trim();
+    if (!cleanTitle) {
+      setFormError('Please enter a valid paper title.');
+      return;
+    }
+
     setSaving(true);
     try {
       const tags = tagsInput
@@ -79,19 +121,20 @@ export const EditPublicationModal: React.FC<EditPublicationModalProps> = ({
         .filter((f) => f.length > 0);
 
       const pubData: Omit<Publication, 'id'> = {
-        title,
-        authors,
-        year,
+        title: cleanTitle,
+        authors: authors.trim() || 'Haider, M.R.',
+        year: year.trim() || new Date().getFullYear().toString(),
         status,
-        journalOrVenue: journalOrVenue || undefined,
-        description: description || title,
-        abstract,
-        methodology: methodology || undefined,
-        dataset: dataset || undefined,
-        tags,
-        doi: doi || undefined,
-        keyFindings: keyFindings.length > 0 ? keyFindings : undefined,
-        bibtex: bibtex || undefined,
+        journalOrVenue: journalOrVenue.trim() || '',
+        description: description.trim() || cleanTitle,
+        abstract: abstract.trim(),
+        methodology: methodology.trim() || '',
+        dataset: dataset.trim() || '',
+        tags: tags.length > 0 ? tags : ['Economics', 'Panel Data'],
+        doi: doi.trim() || '',
+        pdfUrl: pdfUrl.trim() || '',
+        keyFindings: keyFindings.length > 0 ? keyFindings : [],
+        bibtex: bibtex.trim() || '',
       };
 
       if (publication?.id) {
@@ -100,8 +143,9 @@ export const EditPublicationModal: React.FC<EditPublicationModalProps> = ({
         await addPublication(pubData);
       }
       onClose();
-    } catch (err) {
-      console.error(err);
+    } catch (err: any) {
+      console.error('Error saving publication:', err);
+      setFormError(err.message || 'Failed to save publication. Please try again.');
     } finally {
       setSaving(false);
     }
@@ -131,9 +175,14 @@ export const EditPublicationModal: React.FC<EditPublicationModalProps> = ({
             <span className="material-symbols-outlined text-[#004c4c]">
               {publication ? 'edit_document' : 'post_add'}
             </span>
-            <h2 className="font-display text-xl font-bold text-[#004c4c]">
-              {publication ? 'Edit Publication / Paper' : 'Add New Publication / Paper'}
-            </h2>
+            <div>
+              <h2 className="font-display text-lg md:text-xl font-bold text-[#004c4c]">
+                {publication ? 'Edit Publication / Paper' : 'Add New Publication / Paper'}
+              </h2>
+              <p className="text-[11px] text-[#486363]">
+                {publication ? 'Update academic manuscript details, data, and PDF' : 'Upload or register a new research paper in your portfolio'}
+              </p>
+            </div>
           </div>
           <button
             onClick={onClose}
@@ -142,6 +191,14 @@ export const EditPublicationModal: React.FC<EditPublicationModalProps> = ({
             <span className="material-symbols-outlined text-xl">close</span>
           </button>
         </div>
+
+        {/* Error Alert */}
+        {formError && (
+          <div className="mx-6 mt-4 p-3 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start gap-2">
+            <span className="material-symbols-outlined text-base shrink-0 text-rose-600">error</span>
+            <span>{formError}</span>
+          </div>
+        )}
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="overflow-y-auto p-6 md:p-8 space-y-4 text-sm">
@@ -154,8 +211,8 @@ export const EditPublicationModal: React.FC<EditPublicationModalProps> = ({
               required
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              placeholder="e.g. Female Labor Force Participation and Structural Transformation"
-              className="w-full px-3.5 py-2 rounded-xl text-xs md:text-sm neumorphic-input text-[#191c1e]"
+              placeholder="e.g. Female Labor Force Participation and Structural Transformation in Developing Asia"
+              className="w-full px-3.5 py-2 rounded-xl text-xs md:text-sm neumorphic-input text-[#191c1e] font-medium"
             />
           </div>
 
@@ -188,7 +245,7 @@ export const EditPublicationModal: React.FC<EditPublicationModalProps> = ({
             </div>
             <div>
               <label className="block text-xs font-semibold text-[#004c4c] mb-1">
-                Status *
+                Publication Status *
               </label>
               <select
                 value={status}
@@ -200,6 +257,73 @@ export const EditPublicationModal: React.FC<EditPublicationModalProps> = ({
                 <option value="working_paper">Working Paper</option>
               </select>
             </div>
+          </div>
+
+          {/* Paper Document / PDF Upload Section */}
+          <div className="p-4 rounded-xl border border-teal-200 bg-teal-50/50 space-y-3">
+            <div className="flex items-center justify-between">
+              <label className="block text-xs font-bold text-[#004c4c] flex items-center gap-1.5">
+                <span className="material-symbols-outlined text-base">picture_as_pdf</span>
+                <span>Upload Paper PDF or Manuscript Document</span>
+              </label>
+              {pdfUrl && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPdfUrl('');
+                    setPdfFileName('');
+                    if (fileInputRef.current) fileInputRef.current.value = '';
+                  }}
+                  className="text-[11px] text-rose-600 hover:underline font-semibold cursor-pointer"
+                >
+                  Remove Document
+                </button>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+              <div>
+                <input
+                  type="file"
+                  ref={fileInputRef}
+                  accept=".pdf,.doc,.docx"
+                  onChange={handleFileUpload}
+                  className="hidden"
+                  id="pub-pdf-file-upload"
+                />
+                <label
+                  htmlFor="pub-pdf-file-upload"
+                  className="w-full py-2.5 px-3 rounded-xl border border-dashed border-teal-600/40 bg-white hover:bg-teal-50/80 transition-colors flex items-center justify-center gap-2 text-xs font-semibold text-[#004c4c] cursor-pointer shadow-xs"
+                >
+                  <span className="material-symbols-outlined text-base">upload_file</span>
+                  <span>{pdfFileName ? 'Replace File' : 'Choose PDF Document'}</span>
+                </label>
+              </div>
+
+              <div>
+                <input
+                  type="text"
+                  value={pdfUrl.startsWith('data:') ? '' : pdfUrl}
+                  onChange={(e) => {
+                    setPdfUrl(e.target.value);
+                    setPdfFileName(e.target.value ? 'External link' : '');
+                  }}
+                  placeholder="Or paste external PDF / SSRN link"
+                  className="w-full px-3.5 py-2 rounded-xl text-xs neumorphic-input text-[#191c1e] bg-white"
+                />
+              </div>
+            </div>
+
+            {pdfUrl && (
+              <div className="flex items-center gap-2 text-[11px] text-teal-800 font-medium bg-teal-100/70 p-2 rounded-lg">
+                <span className="material-symbols-outlined text-sm text-teal-700">task_alt</span>
+                <span className="truncate">
+                  {pdfUrl.startsWith('data:')
+                    ? `Attached file: ${pdfFileName || 'manuscript.pdf'}`
+                    : `Linked document: ${pdfUrl}`}
+                </span>
+              </div>
+            )}
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
@@ -217,7 +341,7 @@ export const EditPublicationModal: React.FC<EditPublicationModalProps> = ({
             </div>
             <div>
               <label className="block text-xs font-semibold text-[#004c4c] mb-1">
-                DOI Identifier
+                DOI Identifier (Optional)
               </label>
               <input
                 type="text"
@@ -237,7 +361,7 @@ export const EditPublicationModal: React.FC<EditPublicationModalProps> = ({
               type="text"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Title of the specific working paper exploring applied microeconometrics."
+              placeholder="Brief summary of the econometric research focus."
               className="w-full px-3.5 py-2 rounded-xl text-xs md:text-sm neumorphic-input text-[#191c1e]"
             />
           </div>

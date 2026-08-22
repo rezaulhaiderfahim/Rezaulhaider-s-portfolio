@@ -50,15 +50,15 @@ export const EditAwardModal: React.FC<EditAwardModalProps> = ({ award, isOpen, o
     setSaving(true);
     try {
       const awardData: Omit<AwardItem, 'id'> = {
-        title,
-        organization: organization || undefined,
-        description,
+        title: title.trim(),
+        organization: organization.trim() || '',
+        description: description.trim(),
         category,
-        tag,
-        secondaryTag: secondaryTag || undefined,
-        icon,
+        tag: tag.trim() || 'Award',
+        secondaryTag: secondaryTag.trim() || '',
+        icon: icon || 'military_tech',
         iconFilled: true,
-        year: year || undefined,
+        year: year.trim() || '',
       };
 
       if (award?.id) {

@@ -55,11 +55,25 @@ export const PublicationModal: React.FC<PublicationModalProps> = ({ publication,
                 {publication.journalOrVenue}
               </p>
             )}
-            {publication.doi && (
-              <p className="text-xs text-[#486363] mt-1 font-mono">
-                DOI: <a href={`https://doi.org/${publication.doi}`} target="_blank" rel="noreferrer" className="text-teal-700 underline">{publication.doi}</a>
-              </p>
-            )}
+            <div className="flex flex-wrap items-center gap-3 mt-2">
+              {publication.doi && (
+                <p className="text-xs text-[#486363] font-mono">
+                  DOI: <a href={`https://doi.org/${publication.doi}`} target="_blank" rel="noreferrer" className="text-teal-700 underline">{publication.doi}</a>
+                </p>
+              )}
+              {publication.pdfUrl && (
+                <a
+                  href={publication.pdfUrl}
+                  target="_blank"
+                  rel="noreferrer"
+                  download={publication.pdfUrl.startsWith('data:') ? `${publication.title.substring(0, 30)}.pdf` : undefined}
+                  className="inline-flex items-center gap-1.5 px-3 py-1 rounded-lg bg-[#004c4c] text-white text-xs font-semibold hover:bg-[#006666] transition-colors shadow-xs"
+                >
+                  <span className="material-symbols-outlined text-sm">picture_as_pdf</span>
+                  <span>View / Download Manuscript PDF</span>
+                </a>
+              )}
+            </div>
           </div>
 
           {/* Abstract */}

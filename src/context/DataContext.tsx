@@ -67,6 +67,21 @@ interface DataContextType {
 
 const DataContext = createContext<DataContextType | undefined>(undefined);
 
+// Helper to recursively remove undefined properties from objects before sending to Firestore
+const cleanDocData = <T extends Record<string, any>>(obj: T): T => {
+  const result: any = {};
+  for (const [key, value] of Object.entries(obj)) {
+    if (value !== undefined) {
+      if (value && typeof value === 'object' && !Array.isArray(value)) {
+        result[key] = cleanDocData(value);
+      } else {
+        result[key] = value;
+      }
+    }
+  }
+  return result;
+};
+
 // Local caching helpers to prevent initial render flash/hydration shift
 const CACHE_KEYS = {
   PERSONAL_INFO: 'mrh_portfolio_personal_info_v1',
@@ -330,126 +345,345 @@ export const DataProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // CRUD Operations
   const updatePersonalInfo = async (data: Partial<PersonalInfo>) => {
-    const merged = { ...personalInfo, ...data, updatedAt: new Date().toISOString() };
+    const cleaned = cleanDocData(data);
+    const merged = { ...personalInfo, ...cleaned, updatedAt: new Date().toISOString() };
     setPersonalInfo(merged);
     setCachedData(CACHE_KEYS.PERSONAL_INFO, merged);
-    await setDoc(doc(db, 'portfolio_data', 'main'), merged, { merge: true });
+    try {
+      await setDoc(doc(db, 'portfolio_data', 'main'), merged, { merge: true });
+    } catch (err) {
+      console.warn('Firestore updatePersonalInfo background sync notice:', err);
+    }
   };
 
   const addPublication = async (pub: Omit<Publication, 'id'>) => {
-    const docRef = await addDoc(collection(db, 'publications'), {
-      ...pub,
+    const newId = 'pub_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
+    const cleaned = cleanDocData(pub);
+    const newPubItem: Publication = {
+      id: newId,
+      ...cleaned,
       order: publications.length,
-      createdAt: new Date().toISOString()
-    });
-    return docRef.id;
+    } as Publication;
+
+    // Optimistic local state update
+    const updatedList = [...publications, newPubItem];
+    setPublications(updatedList);
+    setCachedData(CACHE_KEYS.PUBLICATIONS, updatedList);
+
+    try {
+      const docRef = await addDoc(collection(db, 'publications'), {
+        ...cleaned,
+        order: publications.length,
+        createdAt: new Date().toISOString(),
+      });
+      // Update with generated Firestore ID if needed
+      if (docRef.id) {
+        const syncedList = updatedList.map((p) => (p.id === newId ? { ...p, id: docRef.id } : p));
+        setPublications(syncedList);
+        setCachedData(CACHE_KEYS.PUBLICATIONS, syncedList);
+        return docRef.id;
+      }
+    } catch (err) {
+      console.warn('Firestore addPublication background sync notice:', err);
+    }
+    return newId;
   };
 
   const updatePublication = async (id: string, pub: Partial<Publication>) => {
-    await updateDoc(doc(db, 'publications', id), {
-      ...pub,
-      updatedAt: new Date().toISOString()
-    });
+    const cleaned = cleanDocData(pub);
+    // Optimistic local state update
+    const updatedList = publications.map((p) => (p.id === id ? { ...p, ...cleaned } : p));
+    setPublications(updatedList);
+    setCachedData(CACHE_KEYS.PUBLICATIONS, updatedList);
+
+    try {
+      await updateDoc(doc(db, 'publications', id), {
+        ...cleaned,
+        updatedAt: new Date().toISOString(),
+      });
+    } catch (err) {
+      console.warn('Firestore updatePublication background sync notice:', err);
+    }
   };
 
   const deletePublication = async (id: string) => {
-    await deleteDoc(doc(db, 'publications', id));
+    // Optimistic local state update
+    const updatedList = publications.filter((p) => p.id !== id);
+    setPublications(updatedList);
+    setCachedData(CACHE_KEYS.PUBLICATIONS, updatedList);
+
+    try {
+      await deleteDoc(doc(db, 'publications', id));
+    } catch (err) {
+      console.warn('Firestore deletePublication background sync notice:', err);
+    }
   };
 
   const addResearchTimeline = async (item: Omit<ResearchExperience, 'id'>) => {
-    const docRef = await addDoc(collection(db, 'research_timeline'), {
-      ...item,
+    const newId = 'time_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
+    const cleaned = cleanDocData(item);
+    const newItem: ResearchExperience = {
+      id: newId,
+      ...cleaned,
       order: researchTimeline.length,
-      createdAt: new Date().toISOString()
-    });
-    return docRef.id;
+    } as ResearchExperience;
+
+    const updatedList = [...researchTimeline, newItem];
+    setResearchTimeline(updatedList);
+    setCachedData(CACHE_KEYS.TIMELINE, updatedList);
+
+    try {
+      const docRef = await addDoc(collection(db, 'research_timeline'), {
+        ...cleaned,
+        order: researchTimeline.length,
+        createdAt: new Date().toISOString(),
+      });
+      if (docRef.id) {
+        const syncedList = updatedList.map((t) => (t.id === newId ? { ...t, id: docRef.id } : t));
+        setResearchTimeline(syncedList);
+        setCachedData(CACHE_KEYS.TIMELINE, syncedList);
+        return docRef.id;
+      }
+    } catch (err) {
+      console.warn('Firestore addResearchTimeline background sync notice:', err);
+    }
+    return newId;
   };
 
   const updateResearchTimeline = async (id: string, item: Partial<ResearchExperience>) => {
-    await updateDoc(doc(db, 'research_timeline', id), {
-      ...item,
-      updatedAt: new Date().toISOString()
-    });
+    const cleaned = cleanDocData(item);
+    const updatedList = researchTimeline.map((t) => (t.id === id ? { ...t, ...cleaned } : t));
+    setResearchTimeline(updatedList);
+    setCachedData(CACHE_KEYS.TIMELINE, updatedList);
+
+    try {
+      await updateDoc(doc(db, 'research_timeline', id), {
+        ...cleaned,
+        updatedAt: new Date().toISOString(),
+      });
+    } catch (err) {
+      console.warn('Firestore updateResearchTimeline background sync notice:', err);
+    }
   };
 
   const deleteResearchTimeline = async (id: string) => {
-    await deleteDoc(doc(db, 'research_timeline', id));
+    const updatedList = researchTimeline.filter((t) => t.id !== id);
+    setResearchTimeline(updatedList);
+    setCachedData(CACHE_KEYS.TIMELINE, updatedList);
+
+    try {
+      await deleteDoc(doc(db, 'research_timeline', id));
+    } catch (err) {
+      console.warn('Firestore deleteResearchTimeline background sync notice:', err);
+    }
   };
 
   const addAward = async (award: Omit<AwardItem, 'id'>) => {
-    const docRef = await addDoc(collection(db, 'awards'), {
-      ...award,
+    const newId = 'award_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
+    const cleaned = cleanDocData(award);
+    const newItem: AwardItem = {
+      id: newId,
+      ...cleaned,
       order: awards.length,
-      createdAt: new Date().toISOString()
-    });
-    return docRef.id;
+    } as AwardItem;
+
+    const updatedList = [...awards, newItem];
+    setAwards(updatedList);
+    setCachedData(CACHE_KEYS.AWARDS, updatedList);
+
+    try {
+      const docRef = await addDoc(collection(db, 'awards'), {
+        ...cleaned,
+        order: awards.length,
+        createdAt: new Date().toISOString(),
+      });
+      if (docRef.id) {
+        const syncedList = updatedList.map((a) => (a.id === newId ? { ...a, id: docRef.id } : a));
+        setAwards(syncedList);
+        setCachedData(CACHE_KEYS.AWARDS, syncedList);
+        return docRef.id;
+      }
+    } catch (err) {
+      console.warn('Firestore addAward background sync notice:', err);
+    }
+    return newId;
   };
 
   const updateAward = async (id: string, award: Partial<AwardItem>) => {
-    await updateDoc(doc(db, 'awards', id), {
-      ...award,
-      updatedAt: new Date().toISOString()
-    });
+    const cleaned = cleanDocData(award);
+    const updatedList = awards.map((a) => (a.id === id ? { ...a, ...cleaned } : a));
+    setAwards(updatedList);
+    setCachedData(CACHE_KEYS.AWARDS, updatedList);
+
+    try {
+      await updateDoc(doc(db, 'awards', id), {
+        ...cleaned,
+        updatedAt: new Date().toISOString(),
+      });
+    } catch (err) {
+      console.warn('Firestore updateAward background sync notice:', err);
+    }
   };
 
   const deleteAward = async (id: string) => {
-    await deleteDoc(doc(db, 'awards', id));
+    const updatedList = awards.filter((a) => a.id !== id);
+    setAwards(updatedList);
+    setCachedData(CACHE_KEYS.AWARDS, updatedList);
+
+    try {
+      await deleteDoc(doc(db, 'awards', id));
+    } catch (err) {
+      console.warn('Firestore deleteAward background sync notice:', err);
+    }
   };
 
   const addExperience = async (exp: Omit<ExperienceItem, 'id'>) => {
-    const docRef = await addDoc(collection(db, 'experience'), {
-      ...exp,
+    const newId = 'exp_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
+    const cleaned = cleanDocData(exp);
+    const newItem: ExperienceItem = {
+      id: newId,
+      ...cleaned,
       order: experience.length,
-      createdAt: new Date().toISOString()
-    });
-    return docRef.id;
+    } as ExperienceItem;
+
+    const updatedList = [...experience, newItem];
+    setExperience(updatedList);
+    setCachedData(CACHE_KEYS.EXPERIENCE, updatedList);
+
+    try {
+      const docRef = await addDoc(collection(db, 'experience'), {
+        ...cleaned,
+        order: experience.length,
+        createdAt: new Date().toISOString(),
+      });
+      if (docRef.id) {
+        const syncedList = updatedList.map((e) => (e.id === newId ? { ...e, id: docRef.id } : e));
+        setExperience(syncedList);
+        setCachedData(CACHE_KEYS.EXPERIENCE, syncedList);
+        return docRef.id;
+      }
+    } catch (err) {
+      console.warn('Firestore addExperience background sync notice:', err);
+    }
+    return newId;
   };
 
   const updateExperience = async (id: string, exp: Partial<ExperienceItem>) => {
-    await updateDoc(doc(db, 'experience', id), {
-      ...exp,
-      updatedAt: new Date().toISOString()
-    });
+    const cleaned = cleanDocData(exp);
+    const updatedList = experience.map((e) => (e.id === id ? { ...e, ...cleaned } : e));
+    setExperience(updatedList);
+    setCachedData(CACHE_KEYS.EXPERIENCE, updatedList);
+
+    try {
+      await updateDoc(doc(db, 'experience', id), {
+        ...cleaned,
+        updatedAt: new Date().toISOString(),
+      });
+    } catch (err) {
+      console.warn('Firestore updateExperience background sync notice:', err);
+    }
   };
 
   const deleteExperience = async (id: string) => {
-    await deleteDoc(doc(db, 'experience', id));
+    const updatedList = experience.filter((e) => e.id !== id);
+    setExperience(updatedList);
+    setCachedData(CACHE_KEYS.EXPERIENCE, updatedList);
+
+    try {
+      await deleteDoc(doc(db, 'experience', id));
+    } catch (err) {
+      console.warn('Firestore deleteExperience background sync notice:', err);
+    }
   };
 
   const addNote = async (note: Omit<NotePost, 'id'>) => {
-    const docRef = await addDoc(collection(db, 'notes'), {
-      ...note,
-      createdAt: new Date().toISOString(),
-      order: notes.length
-    });
-    return docRef.id;
+    const newId = 'note_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
+    const cleaned = cleanDocData(note);
+    const newItem: NotePost = {
+      id: newId,
+      ...cleaned,
+      order: notes.length,
+    } as NotePost;
+
+    const updatedList = [newItem, ...notes];
+    setNotes(updatedList);
+    setCachedData(CACHE_KEYS.NOTES, updatedList);
+
+    try {
+      const docRef = await addDoc(collection(db, 'notes'), {
+        ...cleaned,
+        createdAt: new Date().toISOString(),
+        order: notes.length,
+      });
+      if (docRef.id) {
+        const syncedList = updatedList.map((n) => (n.id === newId ? { ...n, id: docRef.id } : n));
+        setNotes(syncedList);
+        setCachedData(CACHE_KEYS.NOTES, syncedList);
+        return docRef.id;
+      }
+    } catch (err) {
+      console.warn('Firestore addNote background sync notice:', err);
+    }
+    return newId;
   };
 
   const updateNote = async (id: string, note: Partial<NotePost>) => {
-    await updateDoc(doc(db, 'notes', id), {
-      ...note,
-      updatedAt: new Date().toISOString()
-    });
+    const cleaned = cleanDocData(note);
+    const updatedList = notes.map((n) => (n.id === id ? { ...n, ...cleaned } : n));
+    setNotes(updatedList);
+    setCachedData(CACHE_KEYS.NOTES, updatedList);
+
+    try {
+      await updateDoc(doc(db, 'notes', id), {
+        ...cleaned,
+        updatedAt: new Date().toISOString(),
+      });
+    } catch (err) {
+      console.warn('Firestore updateNote background sync notice:', err);
+    }
   };
 
   const deleteNote = async (id: string) => {
-    await deleteDoc(doc(db, 'notes', id));
+    const updatedList = notes.filter((n) => n.id !== id);
+    setNotes(updatedList);
+    setCachedData(CACHE_KEYS.NOTES, updatedList);
+
+    try {
+      await deleteDoc(doc(db, 'notes', id));
+    } catch (err) {
+      console.warn('Firestore deleteNote background sync notice:', err);
+    }
   };
 
   const sendMessage = async (msg: { name: string; email: string; purpose: string; subject?: string; message: string }) => {
-    await addDoc(collection(db, 'messages'), {
-      ...msg,
-      createdAt: new Date().toISOString(),
-      read: false
-    });
+    const cleaned = cleanDocData(msg);
+    try {
+      await addDoc(collection(db, 'messages'), {
+        ...cleaned,
+        createdAt: new Date().toISOString(),
+        read: false,
+      });
+    } catch (err) {
+      console.warn('Firestore sendMessage sync notice:', err);
+    }
   };
 
   const markMessageRead = async (id: string, read: boolean) => {
-    await updateDoc(doc(db, 'messages', id), { read });
+    setMessages((prev) => prev.map((m) => (m.id === id ? { ...m, read } : m)));
+    try {
+      await updateDoc(doc(db, 'messages', id), { read });
+    } catch (err) {
+      console.warn('Firestore markMessageRead sync notice:', err);
+    }
   };
 
   const deleteMessage = async (id: string) => {
-    await deleteDoc(doc(db, 'messages', id));
+    setMessages((prev) => prev.filter((m) => m.id !== id));
+    try {
+      await deleteDoc(doc(db, 'messages', id));
+    } catch (err) {
+      console.warn('Firestore deleteMessage sync notice:', err);
+    }
   };
 
   return (
