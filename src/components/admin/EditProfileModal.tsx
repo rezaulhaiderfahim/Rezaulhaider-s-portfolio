@@ -205,7 +205,7 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
   };
 
   // --- Quantitative Toolkit Handlers ---
-  const handleSaveTool = () => {
+  const handleSaveTool = async () => {
     if (!newTool.name.trim() || !newTool.desc.trim()) {
       setErrorMsg('Tool name and description are required.');
       return;
@@ -223,6 +223,12 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
       quantitativeToolkit: updatedTools,
     });
 
+    try {
+      await updatePersonalInfo({ quantitativeToolkit: updatedTools });
+    } catch (e) {
+      console.warn('Auto-save tool notice:', e);
+    }
+
     // Reset tool form
     setNewTool({ name: '', desc: '', icon: 'code' });
     setEditingToolIndex(null);
@@ -234,19 +240,26 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
     setNewTool({ ...formData.quantitativeToolkit[index] });
   };
 
-  const handleDeleteTool = (indexToDelete: number) => {
+  const handleDeleteTool = async (indexToDelete: number) => {
+    const updatedTools = formData.quantitativeToolkit.filter((_, idx) => idx !== indexToDelete);
     setFormData({
       ...formData,
-      quantitativeToolkit: formData.quantitativeToolkit.filter((_, idx) => idx !== indexToDelete),
+      quantitativeToolkit: updatedTools,
     });
     if (editingToolIndex === indexToDelete) {
       setEditingToolIndex(null);
       setNewTool({ name: '', desc: '', icon: 'code' });
     }
+
+    try {
+      await updatePersonalInfo({ quantitativeToolkit: updatedTools });
+    } catch (e) {
+      console.warn('Auto-save tool deletion notice:', e);
+    }
   };
 
   // --- Skills Handlers ---
-  const handleSaveSkill = () => {
+  const handleSaveSkill = async () => {
     if (!newSkill.title.trim() || !newSkill.description.trim()) {
       setErrorMsg('Skill title and description are required.');
       return;
@@ -265,6 +278,12 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
       skills: updatedSkills,
     });
 
+    try {
+      await updatePersonalInfo({ skills: updatedSkills });
+    } catch (e) {
+      console.warn('Auto-save skill notice:', e);
+    }
+
     setNewSkill({ id: '', title: '', icon: 'analytics', description: '' });
     setEditingSkillId(null);
     setErrorMsg(null);
@@ -275,14 +294,21 @@ export const EditProfileModal: React.FC<EditProfileModalProps> = ({
     setNewSkill({ ...skill });
   };
 
-  const handleDeleteSkill = (skillIdToDelete: string) => {
+  const handleDeleteSkill = async (skillIdToDelete: string) => {
+    const updatedSkills = formData.skills.filter((s) => s.id !== skillIdToDelete);
     setFormData({
       ...formData,
-      skills: formData.skills.filter((s) => s.id !== skillIdToDelete),
+      skills: updatedSkills,
     });
     if (editingSkillId === skillIdToDelete) {
       setEditingSkillId(null);
       setNewSkill({ id: '', title: '', icon: 'analytics', description: '' });
+    }
+
+    try {
+      await updatePersonalInfo({ skills: updatedSkills });
+    } catch (e) {
+      console.warn('Auto-save skill deletion notice:', e);
     }
   };
 

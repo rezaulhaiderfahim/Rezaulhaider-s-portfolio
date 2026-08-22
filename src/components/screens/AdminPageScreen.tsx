@@ -64,7 +64,7 @@ export const AdminPageScreen: React.FC<AdminPageScreenProps> = ({
   } = useData();
 
   const [activeTab, setActiveTab] = useState<
-    'inbox' | 'education' | 'publications' | 'notes' | 'timeline' | 'experience' | 'awards' | 'profiles' | 'profile'
+    'inbox' | 'education' | 'toolkit' | 'skills' | 'publications' | 'notes' | 'timeline' | 'experience' | 'awards' | 'profiles' | 'profile'
   >('inbox');
 
   const [selectedMessage, setSelectedMessage] = useState<ContactMessage | null>(null);
@@ -163,6 +163,128 @@ export const AdminPageScreen: React.FC<AdminPageScreenProps> = ({
   const [savingProfiles, setSavingProfiles] = useState(false);
   const [profilesSuccessMsg, setProfilesSuccessMsg] = useState(false);
   const [profilesErrorMsg, setProfilesErrorMsg] = useState<string | null>(null);
+
+  // Quantitative Toolkit in-page state
+  const [newToolForm, setNewToolForm] = useState<{ name: string; desc: string; icon: string }>({
+    name: '',
+    desc: '',
+    icon: 'code',
+  });
+  const [editingToolIdx, setEditingToolIdx] = useState<number | null>(null);
+  const [savingToolkit, setSavingToolkit] = useState(false);
+  const [toolkitSuccessMsg, setToolkitSuccessMsg] = useState<string | null>(null);
+  const [toolkitErrorMsg, setToolkitErrorMsg] = useState<string | null>(null);
+
+  // Skills in-page state
+  const [newSkillForm, setNewSkillForm] = useState<{ id: string; title: string; icon: string; description: string }>({
+    id: '',
+    title: '',
+    icon: 'analytics',
+    description: '',
+  });
+  const [editingSkillItem, setEditingSkillItem] = useState<string | null>(null);
+  const [savingSkills, setSavingSkills] = useState(false);
+  const [skillsSuccessMsg, setSkillsSuccessMsg] = useState<string | null>(null);
+  const [skillsErrorMsg, setSkillsErrorMsg] = useState<string | null>(null);
+
+  // Toolkit CRUD handlers
+  const handleSaveToolInAdmin = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!newToolForm.name.trim() || !newToolForm.desc.trim()) {
+      setToolkitErrorMsg('Tool name and description are required.');
+      return;
+    }
+    setSavingToolkit(true);
+    setToolkitErrorMsg(null);
+    try {
+      let updated = [...(personalInfo.quantitativeToolkit || [])];
+      if (editingToolIdx !== null) {
+        updated[editingToolIdx] = { ...newToolForm };
+      } else {
+        updated.push({ ...newToolForm });
+      }
+      await updatePersonalInfo({ quantitativeToolkit: updated });
+      setToolkitSuccessMsg(editingToolIdx !== null ? 'Tool updated successfully!' : 'New tool added successfully!');
+      setNewToolForm({ name: '', desc: '', icon: 'code' });
+      setEditingToolIdx(null);
+      setTimeout(() => setToolkitSuccessMsg(null), 3000);
+    } catch (err: any) {
+      console.error(err);
+      setToolkitErrorMsg(err.message || 'Failed to save tool.');
+    } finally {
+      setSavingToolkit(false);
+    }
+  };
+
+  const handleDeleteToolInAdmin = async (idxToDelete: number) => {
+    if (!window.confirm('Are you sure you want to remove this tool from the Quantitative Toolkit?')) return;
+    setSavingToolkit(true);
+    try {
+      const updated = (personalInfo.quantitativeToolkit || []).filter((_, idx) => idx !== idxToDelete);
+      await updatePersonalInfo({ quantitativeToolkit: updated });
+      if (editingToolIdx === idxToDelete) {
+        setEditingToolIdx(null);
+        setNewToolForm({ name: '', desc: '', icon: 'code' });
+      }
+      setToolkitSuccessMsg('Tool removed successfully.');
+      setTimeout(() => setToolkitSuccessMsg(null), 3000);
+    } catch (err: any) {
+      console.error(err);
+      setToolkitErrorMsg(err.message || 'Failed to delete tool.');
+    } finally {
+      setSavingToolkit(false);
+    }
+  };
+
+  // Skills CRUD handlers
+  const handleSaveSkillInAdmin = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!newSkillForm.title.trim() || !newSkillForm.description.trim()) {
+      setSkillsErrorMsg('Skill title and description are required.');
+      return;
+    }
+    setSavingSkills(true);
+    setSkillsErrorMsg(null);
+    try {
+      let updated = [...(personalInfo.skills || [])];
+      if (editingSkillItem) {
+        updated = updated.map((s) => (s.id === editingSkillItem ? { ...newSkillForm } : s));
+      } else {
+        const id = newSkillForm.title.toLowerCase().replace(/[^a-z0-9]/g, '-') + '-' + Date.now();
+        updated.push({ ...newSkillForm, id });
+      }
+      await updatePersonalInfo({ skills: updated });
+      setSkillsSuccessMsg(editingSkillItem ? 'Skill updated successfully!' : 'New skill card added successfully!');
+      setNewSkillForm({ id: '', title: '', icon: 'analytics', description: '' });
+      setEditingSkillItem(null);
+      setTimeout(() => setSkillsSuccessMsg(null), 3000);
+    } catch (err: any) {
+      console.error(err);
+      setSkillsErrorMsg(err.message || 'Failed to save skill.');
+    } finally {
+      setSavingSkills(false);
+    }
+  };
+
+  const handleDeleteSkillInAdmin = async (idToDelete: string) => {
+    if (!window.confirm('Are you sure you want to delete this skill card?')) return;
+    setSavingSkills(true);
+    try {
+      const updated = (personalInfo.skills || []).filter((s) => s.id !== idToDelete);
+      await updatePersonalInfo({ skills: updated });
+      if (editingSkillItem === idToDelete) {
+        setEditingSkillItem(null);
+        setNewSkillForm({ id: '', title: '', icon: 'analytics', description: '' });
+      }
+      setSkillsSuccessMsg('Skill card removed successfully.');
+      setTimeout(() => setSkillsSuccessMsg(null), 3000);
+    } catch (err: any) {
+      console.error(err);
+      setSkillsErrorMsg(err.message || 'Failed to delete skill.');
+    } finally {
+      setSavingSkills(false);
+    }
+  };
 
   // Sync profile URLs from personalInfo.socialLinks whenever updated
   useEffect(() => {
@@ -507,6 +629,8 @@ export const AdminPageScreen: React.FC<AdminPageScreenProps> = ({
         {[
           { id: 'inbox', label: `Inbox Messages (${unreadMessages.length})`, icon: 'mail' },
           { id: 'education', label: 'Education Section', icon: 'school' },
+          { id: 'toolkit', label: `Quantitative Toolkit (${personalInfo.quantitativeToolkit?.length || 0})`, icon: 'build' },
+          { id: 'skills', label: `Skills (${personalInfo.skills?.length || 0})`, icon: 'bar_chart' },
           { id: 'publications', label: `Publications (${publications?.length || 0})`, icon: 'menu_book' },
           { id: 'notes', label: `Notes & Archive (${notes?.length || 0})`, icon: 'edit_note' },
           { id: 'timeline', label: `Research Timeline (${researchTimeline?.length || 0})`, icon: 'history_edu' },
@@ -1493,6 +1617,368 @@ export const AdminPageScreen: React.FC<AdminPageScreenProps> = ({
               </button>
             </div>
           </form>
+        </div>
+      )}
+
+      {/* Tab: Quantitative Toolkit Management */}
+      {activeTab === 'toolkit' && (
+        <div className="space-y-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+            <div>
+              <h3 className="font-headline text-lg font-bold text-[#004c4c]">
+                Quantitative Toolkit Management
+              </h3>
+              <p className="text-xs text-[#486363]">
+                Manage econometric, statistical, and programming software tools displayed on your home page.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => onOpenProfileModal('toolkit')}
+                className="px-3.5 py-1.5 rounded-xl neumorphic-btn text-xs font-semibold text-[#004c4c] flex items-center gap-1.5 cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-sm">open_in_new</span>
+                <span>Open in Modal</span>
+              </button>
+            </div>
+          </div>
+
+          {toolkitSuccessMsg && (
+            <div className="p-4 rounded-xl bg-teal-50 border border-teal-200 text-[#004c4c] text-xs sm:text-sm font-semibold flex items-center gap-2 animate-in fade-in">
+              <span className="material-symbols-outlined text-base">check_circle</span>
+              <span>{toolkitSuccessMsg}</span>
+            </div>
+          )}
+
+          {toolkitErrorMsg && (
+            <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs sm:text-sm font-semibold flex items-center gap-2 animate-in fade-in">
+              <span className="material-symbols-outlined text-base">error</span>
+              <span>{toolkitErrorMsg}</span>
+            </div>
+          )}
+
+          {/* Add / Edit Tool Card Form */}
+          <form onSubmit={handleSaveToolInAdmin} className="neumorphic-card p-6 space-y-4 border border-teal-100/60">
+            <div className="flex items-center justify-between">
+              <h4 className="font-semibold text-xs text-[#004c4c] uppercase tracking-wider flex items-center gap-2">
+                <span className="material-symbols-outlined text-base">
+                  {editingToolIdx !== null ? 'edit' : 'add_circle'}
+                </span>
+                <span>
+                  {editingToolIdx !== null
+                    ? `Editing Tool: ${newToolForm.name}`
+                    : 'Add New Tool to Quantitative Toolkit'}
+                </span>
+              </h4>
+              {editingToolIdx !== null && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingToolIdx(null);
+                    setNewToolForm({ name: '', desc: '', icon: 'code' });
+                  }}
+                  className="text-xs text-[#486363] hover:underline"
+                >
+                  Cancel Edit
+                </button>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-xs font-semibold text-[#486363] mb-1">
+                  Tool / Software Name (e.g., Stata, R, Python, GIS, EViews, SPSS)
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={newToolForm.name}
+                  onChange={(e) => setNewToolForm({ ...newToolForm, name: e.target.value })}
+                  placeholder="e.g. Stata, R, Python, MATLAB..."
+                  className="w-full px-3.5 py-2.5 rounded-xl text-xs md:text-sm neumorphic-input text-[#191c1e] bg-[#FAF9F6] border border-[#e5e2db]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-[#486363] mb-1">
+                  Short Description / Specialization
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={newToolForm.desc}
+                  onChange={(e) => setNewToolForm({ ...newToolForm, desc: e.target.value })}
+                  placeholder="e.g. Econometric Modeling, Panel Data, Microeconometrics"
+                  className="w-full px-3.5 py-2.5 rounded-xl text-xs md:text-sm neumorphic-input text-[#191c1e] bg-[#FAF9F6] border border-[#e5e2db]"
+                />
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between pt-3 border-t border-[#e5e2db]">
+              <div className="flex items-center gap-2 text-xs text-[#486363]">
+                <span>Live Logo Preview:</span>
+                <div className="p-1 rounded bg-white shadow-sm flex items-center justify-center border border-[#e5e2db]">
+                  <ToolkitLogo name={newToolForm.name || 'Tool'} className="w-6 h-6" />
+                </div>
+                <span className="font-semibold text-[#004c4c]">{newToolForm.name || 'Preview'}</span>
+              </div>
+
+              <button
+                type="submit"
+                disabled={savingToolkit}
+                className="px-5 py-2.5 rounded-xl bg-[#004c4c] text-white hover:bg-[#006666] font-semibold text-xs sm:text-sm flex items-center gap-2 cursor-pointer shadow disabled:opacity-50"
+              >
+                {savingToolkit ? (
+                  <span className="material-symbols-outlined text-base animate-spin">sync</span>
+                ) : (
+                  <span className="material-symbols-outlined text-base">
+                    {editingToolIdx !== null ? 'check' : 'add'}
+                  </span>
+                )}
+                <span>{editingToolIdx !== null ? 'Update Tool' : 'Add to Toolkit'}</span>
+              </button>
+            </div>
+          </form>
+
+          {/* Current Tools Grid */}
+          <div className="space-y-3">
+            <h4 className="text-xs font-bold text-[#004c4c] uppercase tracking-wider">
+              Current Quantitative Toolkit Items ({personalInfo.quantitativeToolkit?.length || 0}):
+            </h4>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3">
+              {personalInfo.quantitativeToolkit?.map((tool, idx) => (
+                <div
+                  key={idx}
+                  className="neumorphic-card p-4 flex items-center justify-between gap-3 border border-[#e5e2db]/50"
+                >
+                  <div className="flex items-center gap-3 min-w-0">
+                    <ToolkitLogo name={tool.name} className="w-8 h-8 shrink-0" />
+                    <div className="min-w-0">
+                      <span className="font-bold text-xs md:text-sm text-[#004c4c] block truncate">
+                        {tool.name}
+                      </span>
+                      <span className="text-[11px] text-[#486363] block truncate">{tool.desc}</span>
+                    </div>
+                  </div>
+
+                  <div className="flex items-center gap-1 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingToolIdx(idx);
+                        setNewToolForm({ ...tool });
+                        window.scrollTo({ top: 200, behavior: 'smooth' });
+                      }}
+                      className="p-1.5 text-[#004c4c] hover:bg-teal-50 rounded-lg cursor-pointer transition-colors"
+                      title="Edit Tool"
+                    >
+                      <span className="material-symbols-outlined text-sm">edit</span>
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleDeleteToolInAdmin(idx)}
+                      className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg cursor-pointer transition-colors"
+                      title="Delete Tool"
+                    >
+                      <span className="material-symbols-outlined text-sm">delete</span>
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Tab: Skills Management */}
+      {activeTab === 'skills' && (
+        <div className="space-y-6">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
+            <div>
+              <h3 className="font-headline text-lg font-bold text-[#004c4c]">
+                Skills & Methodological Competencies
+              </h3>
+              <p className="text-xs text-[#486363]">
+                Manage the 3-column skill cards displayed in the Skills section of your home page.
+              </p>
+            </div>
+            <div className="flex items-center gap-2">
+              <button
+                type="button"
+                onClick={() => onOpenProfileModal('skills')}
+                className="px-3.5 py-1.5 rounded-xl neumorphic-btn text-xs font-semibold text-[#004c4c] flex items-center gap-1.5 cursor-pointer"
+              >
+                <span className="material-symbols-outlined text-sm">open_in_new</span>
+                <span>Open in Modal</span>
+              </button>
+            </div>
+          </div>
+
+          {skillsSuccessMsg && (
+            <div className="p-4 rounded-xl bg-teal-50 border border-teal-200 text-[#004c4c] text-xs sm:text-sm font-semibold flex items-center gap-2 animate-in fade-in">
+              <span className="material-symbols-outlined text-base">check_circle</span>
+              <span>{skillsSuccessMsg}</span>
+            </div>
+          )}
+
+          {skillsErrorMsg && (
+            <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs sm:text-sm font-semibold flex items-center gap-2 animate-in fade-in">
+              <span className="material-symbols-outlined text-base">error</span>
+              <span>{skillsErrorMsg}</span>
+            </div>
+          )}
+
+          {/* Add / Edit Skill Card Form */}
+          <form onSubmit={handleSaveSkillInAdmin} className="neumorphic-card p-6 space-y-4 border border-teal-100/60">
+            <div className="flex items-center justify-between">
+              <h4 className="font-semibold text-xs text-[#004c4c] uppercase tracking-wider flex items-center gap-2">
+                <span className="material-symbols-outlined text-base">
+                  {editingSkillItem ? 'edit' : 'add_circle'}
+                </span>
+                <span>
+                  {editingSkillItem
+                    ? `Editing Skill: ${newSkillForm.title}`
+                    : 'Add New Skill Card'}
+                </span>
+              </h4>
+              {editingSkillItem && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingSkillItem(null);
+                    setNewSkillForm({ id: '', title: '', icon: 'analytics', description: '' });
+                  }}
+                  className="text-xs text-[#486363] hover:underline"
+                >
+                  Cancel Edit
+                </button>
+              )}
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+              <div className="sm:col-span-2">
+                <label className="block text-xs font-semibold text-[#486363] mb-1">
+                  Skill Title
+                </label>
+                <input
+                  type="text"
+                  required
+                  value={newSkillForm.title}
+                  onChange={(e) => setNewSkillForm({ ...newSkillForm, title: e.target.value })}
+                  placeholder="e.g. Econometric Modeling, Panel Data, Survey Design"
+                  className="w-full px-3.5 py-2.5 rounded-xl text-xs md:text-sm neumorphic-input text-[#191c1e] bg-[#FAF9F6] border border-[#e5e2db]"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-semibold text-[#486363] mb-1">
+                  Icon (Material Symbol)
+                </label>
+                <input
+                  type="text"
+                  value={newSkillForm.icon}
+                  onChange={(e) => setNewSkillForm({ ...newSkillForm, icon: e.target.value })}
+                  placeholder="analytics, query_stats, psychology..."
+                  className="w-full px-3.5 py-2.5 rounded-xl text-xs md:text-sm neumorphic-input text-[#191c1e] bg-[#FAF9F6] border border-[#e5e2db]"
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-semibold text-[#486363] mb-1">
+                Skill Description / Methodological Competency
+              </label>
+              <textarea
+                rows={3}
+                required
+                value={newSkillForm.description}
+                onChange={(e) => setNewSkillForm({ ...newSkillForm, description: e.target.value })}
+                placeholder="Detailed methodological description of techniques, frameworks, and empirical procedures..."
+                className="w-full px-3.5 py-2.5 rounded-xl text-xs md:text-sm neumorphic-input text-[#191c1e] bg-[#FAF9F6] border border-[#e5e2db] resize-none"
+              />
+            </div>
+
+            <div className="flex items-center justify-between pt-3 border-t border-[#e5e2db]">
+              <div className="flex items-center gap-2 text-xs text-[#486363]">
+                <span>Icon Preview:</span>
+                <div className="w-8 h-8 rounded-full neumorphic-inset flex items-center justify-center text-[#004c4c]">
+                  <span className="material-symbols-outlined text-base">
+                    {newSkillForm.icon || 'analytics'}
+                  </span>
+                </div>
+                <span className="font-semibold text-[#004c4c]">{newSkillForm.title || 'Preview'}</span>
+              </div>
+
+              <button
+                type="submit"
+                disabled={savingSkills}
+                className="px-5 py-2.5 rounded-xl bg-[#004c4c] text-white hover:bg-[#006666] font-semibold text-xs sm:text-sm flex items-center gap-2 cursor-pointer shadow disabled:opacity-50"
+              >
+                {savingSkills ? (
+                  <span className="material-symbols-outlined text-base animate-spin">sync</span>
+                ) : (
+                  <span className="material-symbols-outlined text-base">
+                    {editingSkillItem ? 'check' : 'add'}
+                  </span>
+                )}
+                <span>{editingSkillItem ? 'Update Skill Card' : 'Add Skill Card'}</span>
+              </button>
+            </div>
+          </form>
+
+          {/* Current Skills List */}
+          <div className="space-y-3">
+            <h4 className="text-xs font-bold text-[#004c4c] uppercase tracking-wider">
+              Current Skill Cards ({personalInfo.skills?.length || 0}):
+            </h4>
+
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              {personalInfo.skills?.map((skill) => (
+                <div
+                  key={skill.id}
+                  className="neumorphic-card p-5 flex flex-col justify-between space-y-4 border border-[#e5e2db]/50"
+                >
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="neumorphic-inset w-10 h-10 rounded-full flex items-center justify-center text-[#004c4c]">
+                        <span className="material-symbols-outlined text-lg">{skill.icon}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setEditingSkillItem(skill.id);
+                            setNewSkillForm({ ...skill });
+                            window.scrollTo({ top: 200, behavior: 'smooth' });
+                          }}
+                          className="p-1.5 text-[#004c4c] hover:bg-teal-50 rounded-lg cursor-pointer transition-colors"
+                          title="Edit Skill"
+                        >
+                          <span className="material-symbols-outlined text-sm">edit</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteSkillInAdmin(skill.id)}
+                          className="p-1.5 text-rose-600 hover:bg-rose-50 rounded-lg cursor-pointer transition-colors"
+                          title="Delete Skill"
+                        >
+                          <span className="material-symbols-outlined text-sm">delete</span>
+                        </button>
+                      </div>
+                    </div>
+                    <h5 className="font-headline font-bold text-sm text-[#004c4c]">
+                      {skill.title}
+                    </h5>
+                    <p className="text-xs text-[#486363] leading-relaxed line-clamp-4">
+                      {skill.description}
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
         </div>
       )}
 
