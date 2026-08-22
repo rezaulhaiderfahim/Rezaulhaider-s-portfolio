@@ -6,16 +6,6 @@ service cloud.firestore {
     // Security Helper Functions
     // ===============================================================
 
-    // Check if the request is from a verified Google Admin email
-    function isGoogleAdmin() {
-      return request.auth != null 
-        && request.auth.token.email != null 
-        && request.auth.token.email.lower() in [
-          'fahimhaider0124@gmail.com',
-          'rezaulhaiderfahim@gmail.com'
-        ];
-    }
-
     // Check if the caller has a verified, active passkey session document matching the server-side master hash
     function isPasskeyAdmin() {
       return request.auth != null
@@ -25,9 +15,9 @@ service cloud.firestore {
            get(/databases/$(database)/documents/config/adminAuth).data.passkeyHash;
     }
 
-    // Combined server-side admin check (all mutations enforce this)
+    // Server-side admin check (all modifications require passkey verification)
     function isAdmin() {
-      return isGoogleAdmin() || isPasskeyAdmin();
+      return isPasskeyAdmin();
     }
 
     // ===============================================================
@@ -63,8 +53,7 @@ service cloud.firestore {
     // User Accounts Collection
     // ===============================================================
     match /users/{userId} {
-      allow read: if request.auth != null && (request.auth.uid == userId || isAdmin());
-      allow write: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      allow read, write: if isAdmin();
     }
 
     // ===============================================================

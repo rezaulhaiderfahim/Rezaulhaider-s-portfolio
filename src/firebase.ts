@@ -1,10 +1,6 @@
 import { initializeApp, getApps, getApp } from 'firebase/app';
 import {
   getAuth,
-  GoogleAuthProvider,
-  signInWithPopup,
-  signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
   signOut as fbSignOut,
   onAuthStateChanged,
   User
@@ -115,21 +111,3 @@ export async function testConnection() {
     // Handled gracefully in background
   }
 }
-
-export const googleProvider = new GoogleAuthProvider();
-googleProvider.setCustomParameters({
-  prompt: 'select_account'
-});
-
-export const ADMIN_EMAILS = [
-  'fahimhaider0124@gmail.com',
-  'rezaulhaiderfahim@gmail.com'
-];
-
-export const isUserAdmin = (user: User | null, userRole?: string | null): boolean => {
-  if (!user || !user.email) return false;
-  const lower = user.email.toLowerCase();
-  if (ADMIN_EMAILS.includes(lower)) return true;
-  return userRole === 'admin';
-};
-

@@ -37,9 +37,6 @@ export const AdminPageScreen: React.FC<AdminPageScreenProps> = ({
   const {
     currentUser,
     isAdmin,
-    loginWithGoogle,
-    loginWithEmail,
-    registerWithEmail,
     loginWithSecretKey,
     logout,
     authError,
@@ -364,13 +361,9 @@ export const AdminPageScreen: React.FC<AdminPageScreenProps> = ({
     }
   };
 
-  // Login form states if not logged in
-  const [email, setEmail] = useState('Fahimhaider0124@gmail.com');
-  const [password, setPassword] = useState('');
+  // Passkey Login State
   const [secretKey, setSecretKey] = useState('');
   const [showSecretKeyInput, setShowSecretKeyInput] = useState(false);
-  const [isRegisterMode, setIsRegisterMode] = useState(false);
-  const [showAdvancedAuth, setShowAdvancedAuth] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const unreadMessages = (messages || []).filter((m) => !m.read);
@@ -387,36 +380,6 @@ export const AdminPageScreen: React.FC<AdminPageScreenProps> = ({
       if (!success) {
         console.warn('Unlock failed');
       }
-    } catch (err) {
-      console.error(err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleEmailSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    clearAuthError();
-
-    try {
-      if (isRegisterMode) {
-        await registerWithEmail(email, password, 'M. R. Haider');
-      } else {
-        await loginWithEmail(email, password);
-      }
-    } catch (err: any) {
-      console.error('Email authentication error:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleGoogleLogin = async () => {
-    setLoading(true);
-    clearAuthError();
-    try {
-      await loginWithGoogle();
     } catch (err) {
       console.error(err);
     } finally {
@@ -448,14 +411,14 @@ export const AdminPageScreen: React.FC<AdminPageScreenProps> = ({
             </div>
           )}
 
-          {/* Primary Instant Unlock via Secret Master Passkey */}
+          {/* Master Passkey Access */}
           <div className="p-5 rounded-2xl bg-teal-50/70 border border-teal-200/80 space-y-3 shadow-inner">
             <div className="flex items-center gap-2 text-[#004c4c] font-bold text-xs">
               <span className="material-symbols-outlined text-base">vpn_key</span>
-              <span>Instant Master Key Access</span>
+              <span>Master Passkey Authentication</span>
             </div>
             <p className="text-[11px] text-[#486363] leading-relaxed">
-              Enter your secret passkey to unlock the admin dashboard directly:
+              Enter your master passkey to unlock the admin dashboard:
             </p>
 
             <form
@@ -470,7 +433,7 @@ export const AdminPageScreen: React.FC<AdminPageScreenProps> = ({
                   type={showSecretKeyInput ? 'text' : 'password'}
                   value={secretKey}
                   onChange={(e) => setSecretKey(e.target.value)}
-                  placeholder="Enter your passkey"
+                  placeholder="Enter your master passkey"
                   autoComplete="current-password"
                   className="w-full px-3.5 py-2.5 pr-10 rounded-xl text-sm neumorphic-input text-[#191c1e] font-mono tracking-wide"
                 />
@@ -492,92 +455,9 @@ export const AdminPageScreen: React.FC<AdminPageScreenProps> = ({
                 className="w-full py-3 px-4 rounded-xl bg-[#004c4c] text-white text-sm font-bold hover:bg-[#006666] transition-all cursor-pointer disabled:opacity-50 shadow-md hover:shadow-lg flex items-center justify-center gap-2"
               >
                 <span className="material-symbols-outlined text-base">lock_open</span>
-                <span>{loading ? 'Unlocking...' : 'Unlock Admin Dashboard'}</span>
+                <span>{loading ? 'Verifying...' : 'Unlock Admin Dashboard'}</span>
               </button>
             </form>
-          </div>
-
-          {/* Advanced / Firebase Auth Toggle */}
-          <div className="pt-1">
-            <button
-              type="button"
-              onClick={() => setShowAdvancedAuth(!showAdvancedAuth)}
-              className="w-full text-center text-xs text-[#486363] hover:text-[#004c4c] flex items-center justify-center gap-1 cursor-pointer py-1"
-            >
-              <span>{showAdvancedAuth ? 'Hide standard login options' : 'More login methods (Google / Email)'}</span>
-              <span className="material-symbols-outlined text-sm">
-                {showAdvancedAuth ? 'expand_less' : 'expand_more'}
-              </span>
-            </button>
-
-            {showAdvancedAuth && (
-              <div className="mt-4 space-y-4 pt-4 border-t border-[#e5e2db]">
-                <button
-                  type="button"
-                  onClick={handleGoogleLogin}
-                  disabled={loading}
-                  className="w-full py-2.5 px-3 rounded-xl neumorphic-btn flex items-center justify-center gap-2.5 text-xs font-semibold text-[#191c1e] hover:text-[#004c4c] cursor-pointer"
-                >
-                  <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24">
-                    <path fill="#4285F4" d="M23.745 12.27c0-.7-.06-1.4-.19-2.07H12v4.51h6.6c-.29 1.52-1.14 2.82-2.4 3.68v3.05h3.88c2.27-2.09 3.66-5.17 3.66-9.17z"/>
-                    <path fill="#34A853" d="M12 24c3.24 0 5.95-1.08 7.93-2.91l-3.88-3.05c-1.08.72-2.45 1.16-4.05 1.16-3.12 0-5.77-2.1-6.72-4.93H1.25v3.15C3.26 21.36 7.33 24 12 24z"/>
-                    <path fill="#FBBC05" d="M5.28 14.27c-.25-.72-.38-1.49-.38-2.27s.13-1.55.38-2.27V6.58H1.25C.45 8.18 0 9.98 0 12s.45 3.82 1.25 5.42l4.03-3.15z"/>
-                    <path fill="#EA4335" d="M12 4.75c1.77 0 3.35.61 4.6 1.8l3.42-3.42C17.95 1.19 15.24 0 12 0 7.33 0 3.26 2.64 1.25 6.58l4.03 3.15c.95-2.83 3.6-4.98 6.72-4.98z"/>
-                  </svg>
-                  <span>Sign In with Google</span>
-                </button>
-
-                <form onSubmit={handleEmailSubmit} className="space-y-3">
-                  <div>
-                    <label className="block text-[11px] font-semibold text-[#004c4c] mb-1">
-                      Email Address
-                    </label>
-                    <input
-                      type="email"
-                      required
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl text-xs neumorphic-input text-[#191c1e]"
-                    />
-                  </div>
-
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <label className="block text-[11px] font-semibold text-[#004c4c]">
-                        Password
-                      </label>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setIsRegisterMode(!isRegisterMode);
-                          clearAuthError();
-                        }}
-                        className="text-[10px] text-[#004c4c] hover:underline font-semibold cursor-pointer"
-                      >
-                        {isRegisterMode ? '← Sign In' : 'Setup Password'}
-                      </button>
-                    </div>
-                    <input
-                      type="password"
-                      required
-                      minLength={6}
-                      placeholder={isRegisterMode ? 'Create password' : 'Enter password'}
-                      value={password}
-                      onChange={(e) => setPassword(e.target.value)}
-                      className="w-full px-3 py-2 rounded-xl text-xs neumorphic-input text-[#191c1e]"
-                    />
-                  </div>
-
-                  <button
-                    type="submit"
-                    disabled={loading}
-                    className="w-full py-2 px-3 rounded-xl bg-teal-800 text-white text-xs font-bold hover:bg-teal-900 transition-all cursor-pointer disabled:opacity-50"
-                  >
-                    {isRegisterMode ? 'Create Account' : 'Sign In with Email'}
-                  </button>
-                </form>
-              </div>
-            )}
           </div>
 
           <div className="flex justify-center pt-2 text-xs border-t border-[#e5e2db]/80">
