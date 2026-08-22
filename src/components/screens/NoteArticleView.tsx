@@ -49,17 +49,16 @@ export const NoteArticleView: React.FC<NoteArticleViewProps> = ({
         const altText = imageMatch[1];
         const imgSrc = imageMatch[2];
         return (
-          <figure key={bIdx} className="my-7 space-y-2">
-            <div className="rounded-2xl overflow-hidden shadow-sm border border-[#e5e2db] bg-[#FAF9F6]">
-              <img
-                src={imgSrc}
-                alt={altText || 'Note illustration'}
-                className="w-full h-auto max-h-[520px] object-cover"
-                loading="lazy"
-              />
-            </div>
+          <figure key={bIdx} className="my-6 max-w-full text-center">
+            <img
+              src={imgSrc}
+              alt={altText || 'Note illustration'}
+              className="max-w-full h-auto rounded-lg mx-auto block object-contain shadow-xs border border-[#e5e2db]/80"
+              style={{ maxWidth: '100%', height: 'auto', borderRadius: '8px', display: 'block', margin: '16px auto' }}
+              loading="lazy"
+            />
             {altText && altText.toLowerCase() !== 'illustration' && (
-              <figcaption className="text-xs text-center text-[#486363] italic">
+              <figcaption className="text-xs text-center text-[#486363] italic mt-2">
                 {altText}
               </figcaption>
             )}
@@ -193,11 +192,12 @@ export const NoteArticleView: React.FC<NoteArticleViewProps> = ({
         const match = part.match(/!\[([^\]]*)\]\(([^)]+)\)/);
         if (match) {
           return (
-            <span key={idx} className="block my-4">
+            <span key={idx} className="block my-4 text-center">
               <img
                 src={match[2]}
                 alt={match[1] || 'Illustration'}
-                className="rounded-xl max-w-full h-auto shadow-sm border border-[#e5e2db]"
+                className="max-w-full h-auto rounded-lg mx-auto block object-contain shadow-xs border border-[#e5e2db]/80"
+                style={{ maxWidth: '100%', height: 'auto', borderRadius: '8px', display: 'block', margin: '16px auto' }}
                 loading="lazy"
               />
             </span>
@@ -310,19 +310,20 @@ export const NoteArticleView: React.FC<NoteArticleViewProps> = ({
         )}
       </header>
 
-      {/* Optional Hero Image */}
+      {/* Note Cover Preview Container (Full view with no unwanted cropping) */}
       {note.coverImage && (
-        <div className="rounded-2xl overflow-hidden shadow-sm border border-[#e5e2db]">
+        <div className="note-cover-preview-container">
           <img
             src={note.coverImage}
             alt={note.title}
-            className="w-full h-auto max-h-[420px] object-cover"
+            className="note-cover-preview-img"
+            style={{ width: '100%', height: 'auto', maxHeight: '420px', objectFit: 'contain' }}
           />
         </div>
       )}
 
       {/* Main Article Body */}
-      <article className="prose prose-teal max-w-none font-body text-[#3f4948] pt-2 border-t border-[#e5e2db]">
+      <article className="markdown-body prose prose-teal max-w-none text-[#3f4948] pt-2 border-t border-[#e5e2db]">
         {renderContent(note.content)}
       </article>
 

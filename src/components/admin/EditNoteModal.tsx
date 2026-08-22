@@ -436,14 +436,14 @@ export const EditNoteModal: React.FC<EditNoteModalProps> = ({
 
             {/* Cover Image Thumbnail Preview */}
             {formData.coverImage && (
-              <div className="relative rounded-xl overflow-hidden border border-gray-200 max-h-40 bg-gray-100 mt-2">
+              <div className="relative rounded-xl overflow-hidden border border-gray-200 max-h-[260px] bg-gray-100/70 mt-2 flex items-center justify-center p-2">
                 <img
                   src={formData.coverImage}
                   alt="Cover preview"
-                  className="w-full h-36 object-cover"
+                  className="w-full h-auto max-h-[240px] object-contain rounded-lg"
                 />
-                <div className="absolute bottom-2 left-2 px-2.5 py-0.5 rounded-full bg-black/60 text-white text-[10px] backdrop-blur-xs">
-                  Cover Preview
+                <div className="absolute bottom-2 left-2 px-2.5 py-0.5 rounded-full bg-black/70 text-white text-[10px] backdrop-blur-xs font-medium">
+                  Cover Preview (Full View)
                 </div>
               </div>
             )}
