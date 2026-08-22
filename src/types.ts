@@ -94,12 +94,20 @@ export interface PersonalInfo {
   cvDocument?: CvDocument;
 }
 
+export type PublicationType =
+  | 'journal_article'
+  | 'conference_paper'
+  | 'book'
+  | 'book_chapter'
+  | 'working_paper';
+
 export interface Publication {
   id: string;
   title: string;
   authors: string;
   year: string;
   status: 'published' | 'under_review' | 'working_paper';
+  publicationType?: PublicationType;
   journalOrVenue?: string;
   abstract: string;
   description: string;

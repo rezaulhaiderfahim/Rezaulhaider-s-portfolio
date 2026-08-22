@@ -283,53 +283,83 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({
               </div>
 
               <div className="space-y-3">
-                {publications.map((pub) => (
-                  <div
-                    key={pub.id}
-                    className="neumorphic-card p-4 md:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-                  >
-                    <div className="space-y-1 max-w-2xl">
-                      <div className="flex items-center gap-2">
-                        <span
-                          className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                            pub.status === 'published'
-                              ? 'bg-emerald-100 text-emerald-800'
-                              : 'bg-amber-100 text-amber-800'
-                          }`}
-                        >
-                          {pub.status === 'published' ? 'Published' : 'Under Review'}
-                        </span>
-                        <span className="text-xs font-semibold text-[#486363]">{pub.year}</span>
-                      </div>
-                      <h4 className="font-headline text-base font-bold text-[#191c1e]">
-                        {pub.title}
-                      </h4>
-                      <p className="text-xs text-[#486363]">
-                        {pub.authors} {pub.journalOrVenue ? `· ${pub.journalOrVenue}` : ''}
-                      </p>
-                    </div>
+                {publications.map((pub) => {
+                  const getTypeLabel = () => {
+                    switch (pub.publicationType) {
+                      case 'conference_paper':
+                        return { label: 'Conference Paper', color: 'bg-indigo-100 text-indigo-900 border-indigo-200' };
+                      case 'book':
+                        return { label: 'Book / Monograph', color: 'bg-amber-100 text-amber-900 border-amber-200' };
+                      case 'book_chapter':
+                        return { label: 'Book Chapter', color: 'bg-emerald-100 text-emerald-900 border-emerald-200' };
+                      case 'working_paper':
+                        return { label: 'Working Paper', color: 'bg-slate-100 text-slate-800 border-slate-300' };
+                      case 'journal_article':
+                      default:
+                        return { label: 'Journal Article', color: 'bg-teal-100 text-teal-900 border-teal-200' };
+                    }
+                  };
+                  const typeInfo = getTypeLabel();
 
-                    <div className="flex items-center gap-2 shrink-0">
-                      <button
-                        onClick={() => onEditPublication(pub)}
-                        className="px-3 py-1.5 rounded-lg neumorphic-btn text-xs font-semibold text-[#004c4c] flex items-center gap-1 cursor-pointer"
-                      >
-                        <span className="material-symbols-outlined text-xs">edit</span>
-                        Edit
-                      </button>
-                      <button
-                        onClick={() => {
-                          if (window.confirm(`Delete "${pub.title}"?`)) {
-                            deletePublication(pub.id);
-                          }
-                        }}
-                        className="p-1.5 rounded-lg text-red-600 hover:bg-red-50 text-xs cursor-pointer"
-                      >
-                        <span className="material-symbols-outlined text-base">delete</span>
-                      </button>
+                  return (
+                    <div
+                      key={pub.id}
+                      className="neumorphic-card p-4 md:p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                    >
+                      <div className="space-y-1 max-w-2xl">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span
+                            className={`px-2 py-0.5 rounded text-[10px] font-bold border ${typeInfo.color}`}
+                          >
+                            {typeInfo.label}
+                          </span>
+                          <span
+                            className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                              pub.status === 'published'
+                                ? 'bg-emerald-100 text-emerald-800'
+                                : 'bg-amber-100 text-amber-800'
+                            }`}
+                          >
+                            {pub.status === 'published' ? 'Published' : 'Under Review'}
+                          </span>
+                          {pub.pdfUrl && (
+                            <span className="px-2 py-0.5 rounded text-[10px] font-bold bg-teal-600 text-white flex items-center gap-0.5">
+                              <span className="material-symbols-outlined text-[10px]">picture_as_pdf</span>
+                              PDF
+                            </span>
+                          )}
+                          <span className="text-xs font-semibold text-[#486363]">{pub.year}</span>
+                        </div>
+                        <h4 className="font-headline text-base font-bold text-[#191c1e]">
+                          {pub.title}
+                        </h4>
+                        <p className="text-xs text-[#486363]">
+                          {pub.authors} {pub.journalOrVenue ? `· ${pub.journalOrVenue}` : ''}
+                        </p>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          onClick={() => onEditPublication(pub)}
+                          className="px-3 py-1.5 rounded-lg neumorphic-btn text-xs font-semibold text-[#004c4c] flex items-center gap-1 cursor-pointer"
+                        >
+                          <span className="material-symbols-outlined text-xs">edit</span>
+                          Edit
+                        </button>
+                        <button
+                          onClick={() => {
+                            if (window.confirm(`Delete "${pub.title}"?`)) {
+                              deletePublication(pub.id);
+                            }
+                          }}
+                          className="p-1.5 rounded-lg text-red-600 hover:bg-red-50 text-xs cursor-pointer"
+                        >
+                          <span className="material-symbols-outlined text-base">delete</span>
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             </div>
           )}

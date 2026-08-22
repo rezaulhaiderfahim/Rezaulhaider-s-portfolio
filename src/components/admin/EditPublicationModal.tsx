@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useData } from '../../context/DataContext';
-import { Publication } from '../../types';
+import { Publication, PublicationType } from '../../types';
 
 interface EditPublicationModalProps {
   publication: Publication | null;
@@ -18,6 +18,7 @@ export const EditPublicationModal: React.FC<EditPublicationModalProps> = ({
   const [title, setTitle] = useState('');
   const [authors, setAuthors] = useState('Haider, M.R.');
   const [year, setYear] = useState('2026');
+  const [publicationType, setPublicationType] = useState<PublicationType>('journal_article');
   const [status, setStatus] = useState<'published' | 'under_review' | 'working_paper'>('under_review');
   const [journalOrVenue, setJournalOrVenue] = useState('');
   const [description, setDescription] = useState('');
@@ -40,6 +41,29 @@ export const EditPublicationModal: React.FC<EditPublicationModalProps> = ({
       setTitle(publication.title || '');
       setAuthors(publication.authors || 'Haider, M.R.');
       setYear(publication.year || '2026');
+      
+      // Auto-detect publicationType if not previously set
+      let initialType: PublicationType = publication.publicationType || 'journal_article';
+      if (!publication.publicationType) {
+        if (publication.status === 'working_paper') {
+          initialType = 'working_paper';
+        } else if (
+          publication.journalOrVenue?.toLowerCase().includes('conference') ||
+          publication.journalOrVenue?.toLowerCase().includes('proceedings') ||
+          publication.journalOrVenue?.toLowerCase().includes('symposium')
+        ) {
+          initialType = 'conference_paper';
+        } else if (
+          publication.journalOrVenue?.toLowerCase().includes('press') ||
+          publication.journalOrVenue?.toLowerCase().includes('springer') ||
+          publication.journalOrVenue?.toLowerCase().includes('routledge') ||
+          publication.journalOrVenue?.toLowerCase().includes('book')
+        ) {
+          initialType = 'book';
+        }
+      }
+
+      setPublicationType(initialType);
       setStatus(publication.status || 'under_review');
       setJournalOrVenue(publication.journalOrVenue || '');
       setDescription(publication.description || '');
@@ -57,6 +81,7 @@ export const EditPublicationModal: React.FC<EditPublicationModalProps> = ({
       setTitle('');
       setAuthors('Haider, M.R.');
       setYear(new Date().getFullYear().toString());
+      setPublicationType('journal_article');
       setStatus('under_review');
       setJournalOrVenue('');
       setDescription('');
@@ -125,6 +150,7 @@ export const EditPublicationModal: React.FC<EditPublicationModalProps> = ({
         authors: authors.trim() || 'Haider, M.R.',
         year: year.trim() || new Date().getFullYear().toString(),
         status,
+        publicationType,
         journalOrVenue: journalOrVenue.trim() || '',
         description: description.trim() || cleanTitle,
         abstract: abstract.trim(),
@@ -166,6 +192,39 @@ export const EditPublicationModal: React.FC<EditPublicationModalProps> = ({
     }
   };
 
+  const getVenueLabelAndPlaceholder = () => {
+    switch (publicationType) {
+      case 'journal_article':
+        return {
+          label: 'Journal Name & Volume/Issue',
+          placeholder: 'e.g. Journal of Applied Economics, Vol. 18, No. 2',
+        };
+      case 'conference_paper':
+        return {
+          label: 'Conference Name, Location & Proceedings',
+          placeholder: 'e.g. 15th Annual International Economics Conference, Jakarta',
+        };
+      case 'book':
+        return {
+          label: 'Book Publisher & Location / ISBN',
+          placeholder: 'e.g. Routledge / Springer / Oxford University Press',
+        };
+      case 'book_chapter':
+        return {
+          label: 'Book Title & Publisher (In: ...)',
+          placeholder: 'e.g. In: Handbook of Asian Development Economics, Palgrave Macmillan',
+        };
+      case 'working_paper':
+      default:
+        return {
+          label: 'Working Paper Series / Institution',
+          placeholder: 'e.g. UMY Economics Working Paper Series No. 24 / SSRN',
+        };
+    }
+  };
+
+  const venueInfo = getVenueLabelAndPlaceholder();
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm animate-in fade-in duration-200">
       <div className="bg-[#FAF9F6] rounded-2xl shadow-2xl w-full max-w-2xl max-h-[90vh] flex flex-col overflow-hidden border border-[#e5e2db]">
@@ -180,7 +239,9 @@ export const EditPublicationModal: React.FC<EditPublicationModalProps> = ({
                 {publication ? 'Edit Publication / Paper' : 'Add New Publication / Paper'}
               </h2>
               <p className="text-[11px] text-[#486363]">
-                {publication ? 'Update academic manuscript details, data, and PDF' : 'Upload or register a new research paper in your portfolio'}
+                {publication
+                  ? 'Update academic manuscript details, category, data, and PDF'
+                  : 'Register a Journal Article, Conference Paper, Book, or Working Paper in your portfolio'}
               </p>
             </div>
           </div>
@@ -202,9 +263,82 @@ export const EditPublicationModal: React.FC<EditPublicationModalProps> = ({
 
         {/* Form */}
         <form onSubmit={handleSubmit} className="overflow-y-auto p-6 md:p-8 space-y-4 text-sm">
+          {/* Publication Category / Type Picker */}
+          <div>
+            <label className="block text-xs font-semibold text-[#004c4c] mb-1.5">
+              Publication Type / Category *
+            </label>
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={() => setPublicationType('journal_article')}
+                className={`px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 border transition-all cursor-pointer ${
+                  publicationType === 'journal_article'
+                    ? 'bg-[#004c4c] text-white border-[#004c4c] shadow-sm'
+                    : 'bg-white text-[#486363] border-[#e5e2db] hover:border-[#004c4c]/40 hover:text-[#004c4c]'
+                }`}
+              >
+                <span className="material-symbols-outlined text-sm">menu_book</span>
+                <span>Journal Article</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setPublicationType('conference_paper')}
+                className={`px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 border transition-all cursor-pointer ${
+                  publicationType === 'conference_paper'
+                    ? 'bg-[#004c4c] text-white border-[#004c4c] shadow-sm'
+                    : 'bg-white text-[#486363] border-[#e5e2db] hover:border-[#004c4c]/40 hover:text-[#004c4c]'
+                }`}
+              >
+                <span className="material-symbols-outlined text-sm">co_present</span>
+                <span>Conference Paper</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setPublicationType('book')}
+                className={`px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 border transition-all cursor-pointer ${
+                  publicationType === 'book'
+                    ? 'bg-[#004c4c] text-white border-[#004c4c] shadow-sm'
+                    : 'bg-white text-[#486363] border-[#e5e2db] hover:border-[#004c4c]/40 hover:text-[#004c4c]'
+                }`}
+              >
+                <span className="material-symbols-outlined text-sm">auto_stories</span>
+                <span>Book / Monograph</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setPublicationType('book_chapter')}
+                className={`px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 border transition-all cursor-pointer ${
+                  publicationType === 'book_chapter'
+                    ? 'bg-[#004c4c] text-white border-[#004c4c] shadow-sm'
+                    : 'bg-white text-[#486363] border-[#e5e2db] hover:border-[#004c4c]/40 hover:text-[#004c4c]'
+                }`}
+              >
+                <span className="material-symbols-outlined text-sm">import_contacts</span>
+                <span>Book Chapter</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setPublicationType('working_paper')}
+                className={`px-3 py-2 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 border transition-all cursor-pointer col-span-2 sm:col-span-1 ${
+                  publicationType === 'working_paper'
+                    ? 'bg-[#004c4c] text-white border-[#004c4c] shadow-sm'
+                    : 'bg-white text-[#486363] border-[#e5e2db] hover:border-[#004c4c]/40 hover:text-[#004c4c]'
+                }`}
+              >
+                <span className="material-symbols-outlined text-sm">hourglass_empty</span>
+                <span>Working Paper</span>
+              </button>
+            </div>
+          </div>
+
           <div>
             <label className="block text-xs font-semibold text-[#004c4c] mb-1">
-              Paper / Article Title *
+              Title *
             </label>
             <input
               type="text"
@@ -252,9 +386,9 @@ export const EditPublicationModal: React.FC<EditPublicationModalProps> = ({
                 onChange={(e) => setStatus(e.target.value as any)}
                 className="w-full px-3.5 py-2 rounded-xl text-xs md:text-sm neumorphic-input text-[#191c1e] bg-[#f7f9fc]"
               >
-                <option value="under_review">Under Review</option>
                 <option value="published">Published</option>
-                <option value="working_paper">Working Paper</option>
+                <option value="under_review">Under Review</option>
+                <option value="working_paper">Working Paper / Preprint</option>
               </select>
             </div>
           </div>
@@ -308,7 +442,7 @@ export const EditPublicationModal: React.FC<EditPublicationModalProps> = ({
                     setPdfUrl(e.target.value);
                     setPdfFileName(e.target.value ? 'External link' : '');
                   }}
-                  placeholder="Or paste external PDF / SSRN link"
+                  placeholder="Or paste external PDF / SSRN / DOI link"
                   className="w-full px-3.5 py-2 rounded-xl text-xs neumorphic-input text-[#191c1e] bg-white"
                 />
               </div>
@@ -329,25 +463,25 @@ export const EditPublicationModal: React.FC<EditPublicationModalProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold text-[#004c4c] mb-1">
-                Journal or Conference Venue
+                {venueInfo.label}
               </label>
               <input
                 type="text"
                 value={journalOrVenue}
                 onChange={(e) => setJournalOrVenue(e.target.value)}
-                placeholder="Journal of Applied Economics (or leave empty)"
+                placeholder={venueInfo.placeholder}
                 className="w-full px-3.5 py-2 rounded-xl text-xs md:text-sm neumorphic-input text-[#191c1e]"
               />
             </div>
             <div>
               <label className="block text-xs font-semibold text-[#004c4c] mb-1">
-                DOI Identifier (Optional)
+                DOI / ISBN Identifier (Optional)
               </label>
               <input
                 type="text"
                 value={doi}
                 onChange={(e) => setDoi(e.target.value)}
-                placeholder="10.1016/j.jsustfin.2025.104291"
+                placeholder="10.1016/j.jsustfin.2025.104291 or 978-3-16-148410-0"
                 className="w-full px-3.5 py-2 rounded-xl text-xs md:text-sm neumorphic-input text-[#191c1e]"
               />
             </div>
@@ -355,26 +489,26 @@ export const EditPublicationModal: React.FC<EditPublicationModalProps> = ({
 
           <div>
             <label className="block text-xs font-semibold text-[#004c4c] mb-1">
-              Short Description / Subtitle
+              Short Summary / Subtitle
             </label>
             <input
               type="text"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              placeholder="Brief summary of the econometric research focus."
+              placeholder="Brief summary of the research contribution or focus."
               className="w-full px-3.5 py-2 rounded-xl text-xs md:text-sm neumorphic-input text-[#191c1e]"
             />
           </div>
 
           <div>
             <label className="block text-xs font-semibold text-[#004c4c] mb-1">
-              Abstract
+              Abstract / Synopsis
             </label>
             <textarea
               rows={3}
               value={abstract}
               onChange={(e) => setAbstract(e.target.value)}
-              placeholder="Comprehensive academic abstract..."
+              placeholder="Comprehensive academic abstract or overview..."
               className="w-full px-3.5 py-2 rounded-xl text-xs md:text-sm neumorphic-input text-[#191c1e] resize-none"
             />
           </div>
@@ -382,7 +516,7 @@ export const EditPublicationModal: React.FC<EditPublicationModalProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
             <div>
               <label className="block text-xs font-semibold text-[#004c4c] mb-1">
-                Econometric Methodology
+                Econometric Methodology / Approach
               </label>
               <input
                 type="text"
@@ -394,7 +528,7 @@ export const EditPublicationModal: React.FC<EditPublicationModalProps> = ({
             </div>
             <div>
               <label className="block text-xs font-semibold text-[#004c4c] mb-1">
-                Primary Dataset
+                Primary Dataset / Sources
               </label>
               <input
                 type="text"
@@ -427,20 +561,20 @@ export const EditPublicationModal: React.FC<EditPublicationModalProps> = ({
               type="text"
               value={tagsInput}
               onChange={(e) => setTagsInput(e.target.value)}
-              placeholder="Labor Economics, Panel Data, Under Review"
+              placeholder="Labor Economics, Panel Data, Green Finance"
               className="w-full px-3.5 py-2 rounded-xl text-xs md:text-sm neumorphic-input text-[#191c1e]"
             />
           </div>
 
           <div>
             <label className="block text-xs font-semibold text-[#004c4c] mb-1">
-              BibTeX Citation
+              BibTeX / Citation Reference
             </label>
             <textarea
               rows={3}
               value={bibtex}
               onChange={(e) => setBibtex(e.target.value)}
-              placeholder="@article{haider2026, ...}"
+              placeholder="@article{haider2026, ...} or @inproceedings{...} or @book{...}"
               className="w-full px-3.5 py-2 rounded-xl text-xs font-mono neumorphic-input text-[#191c1e] resize-none"
             />
           </div>
@@ -455,7 +589,7 @@ export const EditPublicationModal: React.FC<EditPublicationModalProps> = ({
                 className="px-4 py-2 rounded-xl text-xs font-semibold text-red-600 hover:bg-red-50 transition-colors flex items-center gap-1 cursor-pointer disabled:opacity-50"
               >
                 <span className="material-symbols-outlined text-sm">delete</span>
-                Delete Paper
+                Delete Item
               </button>
             ) : (
               <div></div>
@@ -475,7 +609,7 @@ export const EditPublicationModal: React.FC<EditPublicationModalProps> = ({
                 className="px-6 py-2.5 rounded-xl bg-[#004c4c] text-white hover:bg-[#006666] font-semibold text-xs flex items-center gap-2 cursor-pointer shadow disabled:opacity-50"
               >
                 {saving && <span className="material-symbols-outlined text-sm animate-spin">sync</span>}
-                <span>{publication ? 'Update Paper' : 'Add Paper'}</span>
+                <span>{publication ? 'Update Publication' : 'Add Publication'}</span>
               </button>
             </div>
           </div>
