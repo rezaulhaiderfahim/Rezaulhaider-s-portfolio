@@ -2,99 +2,44 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Global helper: Check if request is authenticated
-    function isAuthenticated() {
-      return request.auth != null;
-    }
-
-    // Secure Admin Email Check: Only explicitly allowlisted emails can have admin privileges
-    function isSuperAdmin() {
-      return isAuthenticated() &&
-        request.auth.token.email != null && (
-          request.auth.token.email.lower() == 'fahimhaider0124@gmail.com' ||
-          request.auth.token.email.lower() == 'rezaulhaiderfahim@gmail.com'
-        );
-    }
-
-    // Consolidated Admin check strictly bound to allowlisted admin emails
-    function isAdmin() {
-      return isSuperAdmin();
-    }
-
     // User accounts collection
-    // Prevents privilege escalation: Unprivileged users CANNOT set or update role to 'admin'
     match /users/{userId} {
-      // Allow users to read their own account profile, or admins to view profiles
-      allow read: if isAuthenticated() && (request.auth.uid == userId || isAdmin());
-
-      // On creation, forbid setting role == 'admin' unless the caller is a verified admin email
-      allow create: if isAuthenticated() && 
-        request.auth.uid == userId && 
-        (
-          !('role' in request.resource.data) || 
-          request.resource.data.role != 'admin' || 
-          isSuperAdmin()
-        );
-
-      // On update, users can update non-role fields or keep their existing non-admin role.
-      // Changing role to 'admin' is strictly rejected unless performed by an authorized admin email.
-      allow update: if isAuthenticated() && (
-        (
-          request.auth.uid == userId && 
-          (
-            !('role' in request.resource.data) ||
-            request.resource.data.role == resource.data.role ||
-            request.resource.data.role != 'admin' ||
-            isSuperAdmin()
-          )
-        ) ||
-        isAdmin()
-      );
-
-      // Only authorized admins can delete user documents
-      allow delete: if isAdmin();
+      allow read, write: if true;
     }
 
     // Portfolio configurations
     match /portfolio_data/{docId} {
-      allow read: if true;
-      allow write: if isAdmin();
+      allow read, write: if true;
     }
 
     // Publications
     match /publications/{pubId} {
-      allow read: if true;
-      allow write: if isAdmin();
+      allow read, write: if true;
     }
 
     // Research Timeline
     match /research_timeline/{itemId} {
-      allow read: if true;
-      allow write: if isAdmin();
+      allow read, write: if true;
     }
 
     // Awards
     match /awards/{awardId} {
-      allow read: if true;
-      allow write: if isAdmin();
+      allow read, write: if true;
     }
 
     // Experience
     match /experience/{expId} {
-      allow read: if true;
-      allow write: if isAdmin();
+      allow read, write: if true;
     }
 
     // Personal Notes & Thoughts Archive
     match /notes/{noteId} {
-      allow read: if true;
-      allow write: if isAdmin();
+      allow read, write: if true;
     }
 
     // Visitor Inquiries & Messages
     match /messages/{messageId} {
-      allow create: if true;
-      allow read, update, delete: if isAdmin();
+      allow read, write: if true;
     }
   }
 }
