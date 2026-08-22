@@ -399,21 +399,6 @@ export const AdminPageScreen: React.FC<AdminPageScreenProps> = ({
     setLoading(true);
     clearAuthError();
 
-    // If the password entered is the secret passkey, unlock immediately!
-    const cleanPass = password.trim();
-    if (
-      cleanPass === '@Yahoo8511' ||
-      cleanPass.toLowerCase() === '@yahoo8511' ||
-      cleanPass.toLowerCase() === 'yahoo8511' ||
-      cleanPass.toLowerCase() === 'fahim1211' ||
-      cleanPass === '0124' ||
-      cleanPass === 'admin1211' ||
-      cleanPass === 'fahim2026'
-    ) {
-      await handleSecretKeyUnlock(cleanPass);
-      return;
-    }
-
     try {
       if (isRegisterMode) {
         await registerWithEmail(email, password, 'M. R. Haider');
@@ -422,7 +407,6 @@ export const AdminPageScreen: React.FC<AdminPageScreenProps> = ({
       }
     } catch (err: any) {
       console.error('Email authentication error:', err);
-      // If Firebase blocked email/password, fallback to instant unlock helper
     } finally {
       setLoading(false);
     }

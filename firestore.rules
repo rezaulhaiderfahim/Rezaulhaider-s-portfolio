@@ -2,44 +2,118 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // User accounts collection
-    match /users/{userId} {
-      allow read, write: if true;
+    // ===============================================================
+    // Security Helper Functions
+    // ===============================================================
+
+    // Check if the request is from a verified Google Admin email
+    function isGoogleAdmin() {
+      return request.auth != null 
+        && request.auth.token.email != null 
+        && request.auth.token.email.lower() in [
+          'fahimhaider0124@gmail.com',
+          'rezaulhaiderfahim@gmail.com'
+        ];
     }
 
-    // Portfolio configurations
+    // Check if the caller has a verified, active passkey session document matching the server-side master hash
+    function isPasskeyAdmin() {
+      return request.auth != null
+        && exists(/databases/$(database)/documents/config/adminAuth)
+        && exists(/databases/$(database)/documents/admin_sessions/$(request.auth.uid))
+        && get(/databases/$(database)/documents/admin_sessions/$(request.auth.uid)).data.passkeyHash == 
+           get(/databases/$(database)/documents/config/adminAuth).data.passkeyHash;
+    }
+
+    // Combined server-side admin check (all mutations enforce this)
+    function isAdmin() {
+      return isGoogleAdmin() || isPasskeyAdmin();
+    }
+
+    // ===============================================================
+    // Master Config Collection
+    // Holds server-side passkey hash (field: passkeyHash) in config/adminAuth
+    // CANNOT be read or modified by any client; only referenced via rules get()
+    // ===============================================================
+    match /config/{docId} {
+      allow read, write: if false;
+    }
+
+    // ===============================================================
+    // Passkey Verification & Session Collection
+    // Used to cryptographically verify passkey against config/adminAuth
+    // ===============================================================
+    match /admin_sessions/{sessionId} {
+      // Writing/creating a session doc ONLY succeeds if submitted passkeyHash matches config/adminAuth.passkeyHash
+      allow create, update: if request.auth != null
+        && request.auth.uid == sessionId
+        && exists(/databases/$(database)/documents/config/adminAuth)
+        && request.resource.data.passkeyHash == get(/databases/$(database)/documents/config/adminAuth).data.passkeyHash;
+
+      // Only the authenticated session owner can read or delete their session doc
+      allow read: if request.auth != null
+        && request.auth.uid == sessionId
+        && exists(/databases/$(database)/documents/config/adminAuth)
+        && resource.data.passkeyHash == get(/databases/$(database)/documents/config/adminAuth).data.passkeyHash;
+
+      allow delete: if request.auth != null && request.auth.uid == sessionId;
+    }
+
+    // ===============================================================
+    // User Accounts Collection
+    // ===============================================================
+    match /users/{userId} {
+      allow read: if request.auth != null && (request.auth.uid == userId || isAdmin());
+      allow write: if request.auth != null && (request.auth.uid == userId || isAdmin());
+    }
+
+    // ===============================================================
+    // Public Content Collections (Public Read, Admin Write)
+    // ===============================================================
+
+    // Portfolio configurations (Bio, Education, Toolkit, Social Links)
     match /portfolio_data/{docId} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
     // Publications
     match /publications/{pubId} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
     // Research Timeline
     match /research_timeline/{itemId} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
-    // Awards
+    // Awards & Honors
     match /awards/{awardId} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
     // Experience
     match /experience/{expId} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
-    // Personal Notes & Thoughts Archive
+    // Personal Notes & Working Thoughts Archive
     match /notes/{noteId} {
-      allow read, write: if true;
+      allow read: if true;
+      allow write: if isAdmin();
     }
 
+    // ===============================================================
     // Visitor Inquiries & Messages
+    // Public CREATE only (contact form). Admin-only read, update, delete.
+    // ===============================================================
     match /messages/{messageId} {
-      allow read, write: if true;
+      allow create: if true;
+      allow read, update, delete: if isAdmin();
     }
   }
 }

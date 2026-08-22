@@ -8,8 +8,9 @@ import {
   signOut as fbSignOut,
   onAuthStateChanged
 } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, deleteDoc } from 'firebase/firestore';
 import { auth, db, googleProvider, ADMIN_EMAILS } from '../firebase';
+import { sha256 } from '../utils/cryptoAuth';
 
 interface AuthContextType {
   currentUser: User | null;
@@ -27,82 +28,74 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
-const LOCAL_ADMIN_KEY = 'mrh_admin_auth_session_v1';
 const DEFAULT_ADMIN_EMAIL = 'Fahimhaider0124@gmail.com';
 
+/**
+ * SECURITY ARCHITECTURE NOTE:
+ * - Admin authorization is verified exclusively server-side via Firestore Security Rules.
+ * - LocalStorage flags are NOT used as an authorization authority; arbitrary client-side tampering
+ *   in DevTools will fail on any Firestore write because Firestore Security Rules enforce:
+ *   1) Verified Google Admin Email (request.auth.token.email in admin list), OR
+ *   2) A cryptographically verified session document in admin_sessions/{uid} where
+ *      passkeyHash matches config/adminAuth.passkeyHash.
+ */
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [userRole, setUserRole] = useState<string | null>(null);
-  const [isAdmin, setIsAdmin] = useState<boolean>(() => {
-    if (typeof window !== 'undefined') {
-      return localStorage.getItem(LOCAL_ADMIN_KEY) === 'true';
-    }
-    return false;
-  });
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [loading, setLoading] = useState<boolean>(true);
   const [authError, setAuthError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Check local admin session first
-    const hasLocalSession = typeof window !== 'undefined' && localStorage.getItem(LOCAL_ADMIN_KEY) === 'true';
-    if (hasLocalSession) {
-      setIsAdmin(true);
-      setUserRole('admin');
-    }
-
     const unsubscribe = onAuthStateChanged(auth, async (user) => {
       setLoading(true);
       setAuthError(null);
+
       if (user) {
         setCurrentUser(user);
         const emailLower = (user.email || '').toLowerCase();
-        const shouldBeAdmin = ADMIN_EMAILS.includes(emailLower) || hasLocalSession;
+        const isGoogleAdmin = ADMIN_EMAILS.includes(emailLower);
 
-        try {
-          const userRef = doc(db, 'users', user.uid);
-          const userSnap = await getDoc(userRef);
-
-          let role = shouldBeAdmin ? 'admin' : 'user';
-
-          if (userSnap.exists()) {
-            const data = userSnap.data();
-            if (shouldBeAdmin) {
-              role = 'admin';
-              if (data.role !== 'admin') {
-                await setDoc(userRef, { role: 'admin', lastLogin: new Date().toISOString() }, { merge: true });
-              }
+        if (isGoogleAdmin) {
+          setIsAdmin(true);
+          setUserRole('admin');
+          try {
+            const userRef = doc(db, 'users', user.uid);
+            await setDoc(
+              userRef,
+              {
+                email: user.email || DEFAULT_ADMIN_EMAIL,
+                displayName: user.displayName || user.email?.split('@')[0] || 'Administrator',
+                photoURL: user.photoURL || '',
+                role: 'admin',
+                lastLogin: new Date().toISOString(),
+              },
+              { merge: true }
+            );
+          } catch (err) {
+            console.warn('Profile sync notice:', err);
+          }
+        } else {
+          // For anonymous or non-Google users, verify if an active session document exists in Firestore
+          try {
+            const sessionRef = doc(db, 'admin_sessions', user.uid);
+            const sessionSnap = await getDoc(sessionRef);
+            if (sessionSnap.exists()) {
+              setIsAdmin(true);
+              setUserRole('admin');
             } else {
-              role = data.role || 'user';
+              setIsAdmin(false);
+              setUserRole(user.isAnonymous ? 'anonymous' : 'user');
             }
-          } else {
-            // First time document creation
-            await setDoc(userRef, {
-              email: user.email || DEFAULT_ADMIN_EMAIL,
-              displayName: user.displayName || user.email?.split('@')[0] || 'Administrator',
-              photoURL: user.photoURL || '',
-              role: role,
-              createdAt: new Date().toISOString(),
-              lastLogin: new Date().toISOString()
-            });
+          } catch {
+            setIsAdmin(false);
+            setUserRole(user.isAnonymous ? 'anonymous' : 'user');
           }
-
-          setUserRole(role);
-          const isUserAdminNow = role === 'admin' || shouldBeAdmin;
-          setIsAdmin(isUserAdminNow);
-          if (isUserAdminNow && typeof window !== 'undefined') {
-            localStorage.setItem(LOCAL_ADMIN_KEY, 'true');
-          }
-        } catch (err) {
-          console.error('Error syncing user profile with Firestore:', err);
-          setIsAdmin(shouldBeAdmin);
-          setUserRole(shouldBeAdmin ? 'admin' : 'user');
         }
       } else {
-        if (!hasLocalSession) {
-          setCurrentUser(null);
-          setUserRole(null);
-          setIsAdmin(false);
-        }
+        setCurrentUser(null);
+        setUserRole(null);
+        setIsAdmin(false);
       }
       setLoading(false);
     });
@@ -110,40 +103,62 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => unsubscribe();
   }, []);
 
+  /**
+   * Cryptographic Passkey Login via Firestore Rules:
+   * 1. Hashes the entered passkey using SHA-256 client-side.
+   * 2. Establishes an authenticated Firebase session (e.g. anonymous auth).
+   * 3. Attempts to write to admin_sessions/{uid} with the computed passkeyHash.
+   * 4. Cloud Firestore Security Rules validate that passkeyHash == config/adminAuth.passkeyHash.
+   * 5. If the passkey is wrong, Firestore rejects the write with permission-denied.
+   * 6. If the passkey is correct, the document is written and unlocks admin privileges.
+   */
   const loginWithSecretKey = async (passkey: string): Promise<boolean> => {
     setAuthError(null);
-    const rawKey = passkey.trim();
-    const cleanKey = rawKey.toLowerCase();
-    
-    // Acceptable master secret keys
-    const validKeys = [
-      '@yahoo8511',
-      'yahoo8511',
-      '@Yahoo8511'.toLowerCase(),
-      'fahim1211',
-      'fahimhaider0124@gmail.com',
-      'rezaulhaiderfahim@gmail.com',
-      '0124',
-      'fahim2026',
-      'admin1211'
-    ];
+    const cleanKey = passkey.trim();
+    if (!cleanKey) {
+      setAuthError('Please enter a valid passkey.');
+      return false;
+    }
 
-    if (validKeys.includes(cleanKey) || rawKey === '@Yahoo8511' || cleanKey === '@yahoo8511') {
-      if (typeof window !== 'undefined') {
-        localStorage.setItem(LOCAL_ADMIN_KEY, 'true');
+    try {
+      // 1. Compute SHA-256 hash
+      const computedHash = await sha256(cleanKey);
+
+      // 2. Ensure Firebase Auth session exists for request.auth context
+      let user = auth.currentUser;
+      if (!user) {
+        const userCredential = await signInAnonymously(auth);
+        user = userCredential.user;
       }
+
+      if (!user) {
+        throw new Error('Unable to initialize authentication session.');
+      }
+
+      // 3. Attempt to establish the verified session in Firestore
+      const sessionRef = doc(db, 'admin_sessions', user.uid);
+      await setDoc(sessionRef, {
+        passkeyHash: computedHash,
+        uid: user.uid,
+        createdAt: new Date().toISOString(),
+        lastActive: new Date().toISOString(),
+      });
+
+      // 4. If setDoc succeeded, Firestore Rules confirmed the hash matches config/adminAuth.passkeyHash
+      setCurrentUser(user);
       setIsAdmin(true);
       setUserRole('admin');
-
-      // Attempt anonymous Firebase login in background if available
-      try {
-        await signInAnonymously(auth);
-      } catch {
-        // Non-blocking fallback
-      }
       return true;
-    } else {
-      setAuthError('Invalid Master Secret Key. Please verify your passkey.');
+    } catch (err: any) {
+      console.error('Passkey verification error:', err);
+      setIsAdmin(false);
+      setUserRole(null);
+
+      if (err?.code === 'permission-denied' || err?.message?.includes('permission-denied') || err?.message?.includes('Missing or insufficient permissions')) {
+        setAuthError('Access Denied: Invalid Master Passkey or unconfigured server document (config/adminAuth).');
+      } else {
+        setAuthError(err?.message || 'Authentication error during passkey verification.');
+      }
       return false;
     }
   };
@@ -156,7 +171,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error('Google Sign-In Error:', err);
       if (err?.code === 'auth/unauthorized-domain') {
         setAuthError(
-          `Domain authorization notice: You can unlock instantly below using your Master Passkey.`
+          `Domain authorization notice: You can unlock instantly using Master Passkey below.`
         );
       } else if (err?.code === 'auth/popup-closed-by-user') {
         setAuthError('Sign-in popup was closed.');
@@ -179,9 +194,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (err.code === 'auth/operation-not-allowed' || err.code === 'auth/admin-restricted-operation') {
         msg = 'Email/Password sign-in unavailable. Please use Master Passkey below.';
       } else if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
-        msg = 'Invalid credentials. You can also unlock directly using Master Key below.';
+        msg = 'Invalid credentials. You can also unlock directly using Master Passkey below.';
       } else if (err.code === 'auth/too-many-requests') {
-        msg = 'Too many attempts. Please unlock with Master Key.';
+        msg = 'Too many attempts. Please unlock with Master Passkey.';
       } else {
         msg = err.message || 'Login error.';
       }
@@ -195,7 +210,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const cred = await createUserWithEmailAndPassword(auth, email.trim(), pass);
       const emailLower = (cred.user.email || '').toLowerCase();
-      const role = ADMIN_EMAILS.includes(emailLower) ? 'admin' : 'user';
+      const isGoogleAdmin = ADMIN_EMAILS.includes(emailLower);
+      const role = isGoogleAdmin ? 'admin' : 'user';
 
       const userRef = doc(db, 'users', cred.user.uid);
       await setDoc(userRef, {
@@ -204,18 +220,15 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         photoURL: '',
         role: role,
         createdAt: new Date().toISOString(),
-        lastLogin: new Date().toISOString()
+        lastLogin: new Date().toISOString(),
       });
-      if (role === 'admin' && typeof window !== 'undefined') {
-        localStorage.setItem(LOCAL_ADMIN_KEY, 'true');
-      }
     } catch (err: any) {
       console.error('Register Error:', err);
       let msg = err.message || 'Failed to create account.';
       if (err.code === 'auth/operation-not-allowed' || err.code === 'auth/admin-restricted-operation') {
         msg = 'Account creation restricted. Please use Master Passkey below to access.';
       } else if (err.code === 'auth/email-already-in-use') {
-        msg = 'An account with this email already exists. Please switch to Sign In or use Master Key.';
+        msg = 'An account with this email already exists. Please switch to Sign In or use Master Passkey.';
       } else if (err.code === 'auth/weak-password') {
         msg = 'Password should be at least 6 characters.';
       }
@@ -226,8 +239,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const logout = async () => {
     try {
-      if (typeof window !== 'undefined') {
-        localStorage.removeItem(LOCAL_ADMIN_KEY);
+      if (auth.currentUser) {
+        const sessionRef = doc(db, 'admin_sessions', auth.currentUser.uid);
+        await deleteDoc(sessionRef).catch(() => {});
       }
       setIsAdmin(false);
       setUserRole(null);
