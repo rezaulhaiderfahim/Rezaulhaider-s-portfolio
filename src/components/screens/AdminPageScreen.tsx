@@ -367,7 +367,8 @@ export const AdminPageScreen: React.FC<AdminPageScreenProps> = ({
   // Login form states if not logged in
   const [email, setEmail] = useState('Fahimhaider0124@gmail.com');
   const [password, setPassword] = useState('');
-  const [secretKey, setSecretKey] = useState('fahim1211');
+  const [secretKey, setSecretKey] = useState('');
+  const [showSecretKeyInput, setShowSecretKeyInput] = useState(false);
   const [isRegisterMode, setIsRegisterMode] = useState(false);
   const [showAdvancedAuth, setShowAdvancedAuth] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -375,10 +376,13 @@ export const AdminPageScreen: React.FC<AdminPageScreenProps> = ({
   const unreadMessages = (messages || []).filter((m) => !m.read);
 
   const handleSecretKeyUnlock = async (keyToUse?: string) => {
+    const key = (keyToUse !== undefined ? keyToUse : secretKey).trim();
+    if (!key) {
+      return;
+    }
     setLoading(true);
     clearAuthError();
     try {
-      const key = keyToUse || secretKey || 'fahim1211';
       const success = await loginWithSecretKey(key);
       if (!success) {
         console.warn('Unlock failed');
@@ -396,9 +400,17 @@ export const AdminPageScreen: React.FC<AdminPageScreenProps> = ({
     clearAuthError();
 
     // If the password entered is the secret passkey, unlock immediately!
-    const cleanPass = password.trim().toLowerCase();
-    if (cleanPass === 'fahim1211' || cleanPass === '0124' || cleanPass === 'admin1211' || cleanPass === 'fahim2026') {
-      await handleSecretKeyUnlock(password);
+    const cleanPass = password.trim();
+    if (
+      cleanPass === '@Yahoo8511' ||
+      cleanPass.toLowerCase() === '@yahoo8511' ||
+      cleanPass.toLowerCase() === 'yahoo8511' ||
+      cleanPass.toLowerCase() === 'fahim1211' ||
+      cleanPass === '0124' ||
+      cleanPass === 'admin1211' ||
+      cleanPass === 'fahim2026'
+    ) {
+      await handleSecretKeyUnlock(cleanPass);
       return;
     }
 
@@ -459,28 +471,46 @@ export const AdminPageScreen: React.FC<AdminPageScreenProps> = ({
               <span>Instant Master Key Access</span>
             </div>
             <p className="text-[11px] text-[#486363] leading-relaxed">
-              Use your secret passkey (<code className="bg-teal-100 px-1 py-0.5 rounded font-mono font-bold text-[#004c4c]">fahim1211</code>) to unlock the admin dashboard directly:
+              Enter your secret passkey to unlock the admin dashboard directly:
             </p>
 
-            <div className="space-y-2 pt-1">
-              <input
-                type="text"
-                value={secretKey}
-                onChange={(e) => setSecretKey(e.target.value)}
-                placeholder="Enter secret key (e.g. fahim1211)"
-                className="w-full px-3.5 py-2.5 rounded-xl text-sm neumorphic-input text-[#191c1e] font-mono tracking-wide"
-              />
+            <form
+              onSubmit={(e) => {
+                e.preventDefault();
+                handleSecretKeyUnlock();
+              }}
+              className="space-y-3 pt-1"
+            >
+              <div className="relative">
+                <input
+                  type={showSecretKeyInput ? 'text' : 'password'}
+                  value={secretKey}
+                  onChange={(e) => setSecretKey(e.target.value)}
+                  placeholder="Enter your passkey"
+                  autoComplete="current-password"
+                  className="w-full px-3.5 py-2.5 pr-10 rounded-xl text-sm neumorphic-input text-[#191c1e] font-mono tracking-wide"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowSecretKeyInput(!showSecretKeyInput)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-[#486363] hover:text-[#004c4c] cursor-pointer p-1"
+                  title={showSecretKeyInput ? 'Hide passkey' : 'Show passkey'}
+                >
+                  <span className="material-symbols-outlined text-base">
+                    {showSecretKeyInput ? 'visibility_off' : 'visibility'}
+                  </span>
+                </button>
+              </div>
 
               <button
-                type="button"
-                disabled={loading}
-                onClick={() => handleSecretKeyUnlock()}
+                type="submit"
+                disabled={loading || !secretKey.trim()}
                 className="w-full py-3 px-4 rounded-xl bg-[#004c4c] text-white text-sm font-bold hover:bg-[#006666] transition-all cursor-pointer disabled:opacity-50 shadow-md hover:shadow-lg flex items-center justify-center gap-2"
               >
                 <span className="material-symbols-outlined text-base">lock_open</span>
                 <span>{loading ? 'Unlocking...' : 'Unlock Admin Dashboard'}</span>
               </button>
-            </div>
+            </form>
           </div>
 
           {/* Advanced / Firebase Auth Toggle */}

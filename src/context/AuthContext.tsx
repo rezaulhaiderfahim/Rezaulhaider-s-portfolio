@@ -112,10 +112,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const loginWithSecretKey = async (passkey: string): Promise<boolean> => {
     setAuthError(null);
-    const cleanKey = passkey.trim().toLowerCase();
+    const rawKey = passkey.trim();
+    const cleanKey = rawKey.toLowerCase();
     
     // Acceptable master secret keys
     const validKeys = [
+      '@yahoo8511',
+      'yahoo8511',
+      '@Yahoo8511'.toLowerCase(),
       'fahim1211',
       'fahimhaider0124@gmail.com',
       'rezaulhaiderfahim@gmail.com',
@@ -124,7 +128,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       'admin1211'
     ];
 
-    if (validKeys.includes(cleanKey) || cleanKey.length >= 4) {
+    if (validKeys.includes(cleanKey) || rawKey === '@Yahoo8511' || cleanKey === '@yahoo8511') {
       if (typeof window !== 'undefined') {
         localStorage.setItem(LOCAL_ADMIN_KEY, 'true');
       }
@@ -139,7 +143,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
       return true;
     } else {
-      setAuthError('Invalid Master Secret Key. Please enter "fahim1211".');
+      setAuthError('Invalid Master Secret Key. Please verify your passkey.');
       return false;
     }
   };
@@ -152,7 +156,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error('Google Sign-In Error:', err);
       if (err?.code === 'auth/unauthorized-domain') {
         setAuthError(
-          `Starter tier restriction: You can unlock instantly below using Master Passkey "fahim1211" without domain setup.`
+          `Domain authorization notice: You can unlock instantly below using your Master Passkey.`
         );
       } else if (err?.code === 'auth/popup-closed-by-user') {
         setAuthError('Sign-in popup was closed.');
@@ -173,9 +177,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error('Email Login Error:', err);
       let msg = 'Authentication failed.';
       if (err.code === 'auth/operation-not-allowed' || err.code === 'auth/admin-restricted-operation') {
-        msg = 'Email/Password provider is restricted on Starter tier. Use Instant Master Unlock with "fahim1211" below.';
+        msg = 'Email/Password sign-in unavailable. Please use Master Passkey below.';
       } else if (err.code === 'auth/invalid-credential' || err.code === 'auth/user-not-found' || err.code === 'auth/wrong-password') {
-        msg = 'Invalid credentials. You can also unlock directly using Master Key "fahim1211".';
+        msg = 'Invalid credentials. You can also unlock directly using Master Key below.';
       } else if (err.code === 'auth/too-many-requests') {
         msg = 'Too many attempts. Please unlock with Master Key.';
       } else {
@@ -209,7 +213,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error('Register Error:', err);
       let msg = err.message || 'Failed to create account.';
       if (err.code === 'auth/operation-not-allowed' || err.code === 'auth/admin-restricted-operation') {
-        msg = 'Firebase Starter tier does not permit new email signups. Please use Instant Master Unlock with "fahim1211" below.';
+        msg = 'Account creation restricted. Please use Master Passkey below to access.';
       } else if (err.code === 'auth/email-already-in-use') {
         msg = 'An account with this email already exists. Please switch to Sign In or use Master Key.';
       } else if (err.code === 'auth/weak-password') {

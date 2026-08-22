@@ -90,14 +90,14 @@ const SEO_CONFIG: Record<TabType, SeoMeta> = {
     description: 'Portfolio content management system for Muhammad Rezaul Haider.',
     ogTitle: 'Portfolio Administration | M. R. Haider',
     ogDescription: 'Portfolio content management system for Muhammad Rezaul Haider.',
-    path: '/fahim1211',
+    path: '/yahoo8511',
     robots: 'noindex, nofollow',
   },
 };
 
 export const tabToPath = (tab: TabType): string => {
   if (tab === 'home') return '/';
-  if (tab === 'admin') return '/fahim1211';
+  if (tab === 'admin') return '/yahoo8511';
   return `/${tab}`;
 };
 
@@ -108,13 +108,23 @@ export const resolveCurrentLocationToTab = (): TabType => {
   const search = window.location.search || '';
   const hash = window.location.hash || '';
 
-  // 1. Check Query Parameters (?tab=fahim1211, ?fahim1211, ?tab=research, etc.)
+  const isSecretAdminMatch = (val: string) => {
+    const clean = val.toLowerCase().trim().replace(/^[@/#]+|[@/#]+$/g, '');
+    return clean === 'yahoo8511' || clean === 'fahim1211';
+  };
+
+  // 1. Check Query Parameters (?tab=yahoo8511, ?@Yahoo8511, ?tab=fahim1211, ?tab=research, etc.)
   if (search) {
     try {
       const searchParams = new URLSearchParams(search);
 
-      // Secret route check via query flag
-      if (searchParams.has('fahim1211')) {
+      // Secret route check via query flags
+      if (
+        searchParams.has('yahoo8511') ||
+        searchParams.has('@yahoo8511') ||
+        searchParams.has('@Yahoo8511') ||
+        searchParams.has('fahim1211')
+      ) {
         return 'admin';
       }
 
@@ -140,8 +150,8 @@ export const resolveCurrentLocationToTab = (): TabType => {
 
       if (paramValue) {
         const val = paramValue.toLowerCase().trim().replace(/^\/+|\/+$/g, '');
-        // Secret parameter strictly matches fahim1211
-        if (val === 'fahim1211') {
+        // Secret parameter matches
+        if (isSecretAdminMatch(val)) {
           return 'admin';
         }
         if (val === 'research') return 'research';
@@ -150,7 +160,7 @@ export const resolveCurrentLocationToTab = (): TabType => {
         if (val === 'notes') return 'notes';
         if (val === 'home' || val === '') return 'home';
 
-        // Any unauthorized param value like ?tab=admin or ?tab=login redirects to home
+        // Any unauthorized param value like ?tab=login redirects to home
         if (typeof window !== 'undefined' && window.history?.replaceState) {
           window.history.replaceState(null, '', '/');
         }
@@ -161,10 +171,10 @@ export const resolveCurrentLocationToTab = (): TabType => {
     }
   }
 
-  // 2. Check Hash Fragment (#/fahim1211, #fahim1211, #/research, etc.)
+  // 2. Check Hash Fragment (#/yahoo8511, #@Yahoo8511, #/fahim1211, #/research, etc.)
   if (hash) {
     const cleanHash = hash.replace(/^[#/]+/, '').split('?')[0].toLowerCase().trim();
-    if (cleanHash === 'fahim1211') {
+    if (isSecretAdminMatch(cleanHash)) {
       return 'admin';
     }
     if (cleanHash === 'research') return 'research';
@@ -173,20 +183,20 @@ export const resolveCurrentLocationToTab = (): TabType => {
     if (cleanHash === 'notes') return 'notes';
     if (cleanHash === 'home' || cleanHash === '') return 'home';
 
-    // Unknown or unauthorized hash (#admin, #login, etc.) clean to /
+    // Unknown or unauthorized hash clean to /
     if (typeof window !== 'undefined' && window.history?.replaceState) {
       window.history.replaceState(null, '', '/');
     }
     return 'home';
   }
 
-  // 3. Check Pathname (/fahim1211, /research, /awards, etc.)
+  // 3. Check Pathname (/yahoo8511, /@Yahoo8511, /fahim1211, /research, /awards, etc.)
   if (pathname && pathname !== '/') {
     const rawClean = pathname.split('?')[0].split('#')[0].toLowerCase().trim();
     const segments = rawClean.split('/').filter(Boolean);
 
     // Exact secret route match
-    if (segments.length === 1 && segments[0] === 'fahim1211') {
+    if (segments.length === 1 && isSecretAdminMatch(segments[0])) {
       return 'admin';
     }
 
@@ -200,7 +210,11 @@ export const resolveCurrentLocationToTab = (): TabType => {
     }
 
     // Substring match for secret route in case of proxy/subfolder deployment
-    if (rawClean.endsWith('/fahim1211') || rawClean === '/fahim1211') {
+    if (
+      rawClean.endsWith('/yahoo8511') ||
+      rawClean.endsWith('/@yahoo8511') ||
+      rawClean.endsWith('/fahim1211')
+    ) {
       return 'admin';
     }
 
