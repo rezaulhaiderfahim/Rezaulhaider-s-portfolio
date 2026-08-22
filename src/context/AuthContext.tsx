@@ -38,6 +38,8 @@ const DEFAULT_ADMIN_EMAIL = 'Fahimhaider0124@gmail.com';
  *   1) Verified Google Admin Email (request.auth.token.email in admin list), OR
  *   2) A cryptographically verified session document in admin_sessions/{uid} where
  *      passkeyHash matches config/adminAuth.passkeyHash.
+ * - Anonymous Authentication is required so Firestore Rules have a valid `request.auth.uid`
+ *   to associate with `admin_sessions/{uid}`.
  */
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
@@ -106,11 +108,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   /**
    * Cryptographic Passkey Login via Firestore Rules:
    * 1. Hashes the entered passkey using SHA-256 client-side.
-   * 2. Establishes an authenticated Firebase session (e.g. anonymous auth).
+   * 2. Establishes an authenticated Firebase session (via signInAnonymously) to provide `request.auth`.
    * 3. Attempts to write to admin_sessions/{uid} with the computed passkeyHash.
    * 4. Cloud Firestore Security Rules validate that passkeyHash == config/adminAuth.passkeyHash.
    * 5. If the passkey is wrong, Firestore rejects the write with permission-denied.
-   * 6. If the passkey is correct, the document is written and unlocks admin privileges.
+   * 6. If anonymous sign-in is disabled, explicit instructions are shown to enable it in Firebase Console.
    */
   const loginWithSecretKey = async (passkey: string): Promise<boolean> => {
     setAuthError(null);
@@ -127,8 +129,27 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       // 2. Ensure Firebase Auth session exists for request.auth context
       let user = auth.currentUser;
       if (!user) {
-        const userCredential = await signInAnonymously(auth);
-        user = userCredential.user;
+        try {
+          const userCredential = await signInAnonymously(auth);
+          user = userCredential.user;
+        } catch (authErr: any) {
+          console.error('Anonymous auth error during passkey verification:', authErr);
+          if (
+            authErr?.code === 'auth/admin-restricted-operation' ||
+            authErr?.code === 'auth/operation-not-allowed'
+          ) {
+            setAuthError(
+              'Anonymous sign-in is disabled in Firebase Console. Enable it under Authentication > Sign-in method > Anonymous, then try again.'
+            );
+          } else {
+            setAuthError(
+              authErr?.message || 'Authentication error: Could not initialize auth session.'
+            );
+          }
+          setIsAdmin(false);
+          setUserRole(null);
+          return false;
+        }
       }
 
       if (!user) {
@@ -154,8 +175,21 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setIsAdmin(false);
       setUserRole(null);
 
-      if (err?.code === 'permission-denied' || err?.message?.includes('permission-denied') || err?.message?.includes('Missing or insufficient permissions')) {
-        setAuthError('Access Denied: Invalid Master Passkey or unconfigured server document (config/adminAuth).');
+      if (
+        err?.code === 'auth/admin-restricted-operation' ||
+        err?.code === 'auth/operation-not-allowed'
+      ) {
+        setAuthError(
+          'Anonymous sign-in is disabled in Firebase Console. Enable it under Authentication > Sign-in method > Anonymous, then try again.'
+        );
+      } else if (
+        err?.code === 'permission-denied' ||
+        err?.message?.includes('permission-denied') ||
+        err?.message?.includes('Missing or insufficient permissions')
+      ) {
+        setAuthError(
+          'Access Denied: Invalid Master Passkey or unconfigured server document (config/adminAuth).'
+        );
       } else {
         setAuthError(err?.message || 'Authentication error during passkey verification.');
       }
